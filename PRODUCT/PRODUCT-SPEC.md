@@ -108,7 +108,7 @@ Preferred simplest behavior: after result, show “Lift fingers, then tap to pla
 - Target reveal duration: roughly 2–3 seconds, adjustable after real-device testing.
 - Sound effects should be short, original/licensed, bundled locally, and never streamed.
 - Haptics should reinforce touch registration, selector ticks (sparingly), and final selection. Avoid continuous vibration or excessive repeated haptics.
-- Provide separate Sound and Haptics toggles in Settings; default state can be on only after testing that it is not intrusive. Persist settings locally.
+- Provide separate Sound and Haptics toggles in Settings. Initial defaults: Sound off, Haptics on; confirm through user testing. Persist settings locally.
 - Respect system Reduce Motion: replace rapid selector travel and expanding wave with a shorter fade/scale reveal while preserving the same selected result.
 - VoiceOver: announce number of fingers detected where practical and announce selected/winner result. Ensure settings and replay controls have accessibility labels and adequate hit targets.
 - Support Dynamic Type for any visible text, while keeping the play surface visually minimal.
@@ -118,7 +118,7 @@ Preferred simplest behavior: after result, show “Lift fingers, then tap to pla
 Only a small sheet with:
 - Sound: On/Off.
 - Haptics: On/Off.
-- Appearance: System / Dark / Light only if testing proves it is useful and does not complicate the core experience; default to System. If not essential, omit from first build.
+- No appearance selector in MVP. Keep one consistent dark base play surface; the winner's assigned color fills the screen at the end.
 - Privacy Policy link.
 - Version/build number.
 
@@ -155,7 +155,7 @@ Do not add account, support chat, language selection, themes, or premium options
 ## 12. Privacy and App Store readiness
 - No account, no personal data collection, no analytics, no advertising, no third-party SDKs in MVP.
 - Touch coordinates exist only in transient in-memory state for the current round; do not persist or transmit them.
-- Store only local preferences (sound/haptics and optional appearance).
+- Store only local Sound and Haptics preferences.
 - Publish a real Privacy Policy and Support page on GitHub Pages or another stable public host. The privacy policy must accurately describe actual shipped behavior, not planned behavior.
 - Complete App Store Connect privacy declarations based on the final binary and all included SDKs; do not assume “no data collected” until dependency and binary review confirms it.
 - Complete age rating questionnaire based on the actual app content. MVP contains no user-generated content, no dares, no adult content.
@@ -194,6 +194,6 @@ The MVP is not considered complete until all are true:
 - Final icon and visual identity.
 - Exact color palette and motion curve after device prototype.
 - Final minimum iOS version after checking target-device coverage.
-- Whether appearance selector adds value; default omit unless user testing supports it.
+- Final sound default can be tuned during device/user testing; initial implementation default: sound off to avoid unexpected public audio, haptics on.
 - Exact App Store age rating after final questionnaire.
 - Public support/privacy URLs after GitHub Pages is enabled and verified.
