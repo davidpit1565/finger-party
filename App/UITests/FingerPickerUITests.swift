@@ -27,14 +27,11 @@ class FingerPickerUITestCase: XCTestCase {
         return target.value as? String
     }
 
-    /// Taps the switch itself; if the identifier landed on the whole row, taps its trailing edge where the switch is.
+    /// In a SwiftUI Form the identifier lands on a full-width element; tapping its center hits the label,
+    /// which does not toggle. Tap the trailing edge, where the switch control is.
     func flip(_ id: String) {
-        let sw = app.switches[id]
-        if sw.waitForExistence(timeout: 2) {
-            sw.tap()
-        } else {
-            element(id).coordinate(withNormalizedOffset: CGVector(dx: 0.92, dy: 0.5)).tap()
-        }
+        let target = app.switches[id].waitForExistence(timeout: 2) ? app.switches[id] : element(id)
+        target.coordinate(withNormalizedOffset: CGVector(dx: 0.92, dy: 0.5)).tap()
     }
 }
 
