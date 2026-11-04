@@ -86,7 +86,7 @@ Test:
 - Do not use random animation outcome to choose the winner.
 
 ## 6. Settings and persistence
-- Persist only Sound and Haptics toggles (and appearance only if retained).
+- Persist only Sound and Haptics toggles. No appearance selector in MVP.
 - Use UserDefaults / AppStorage; no database or cloud.
 - Settings sheet has only the controls required for MVP plus Privacy Policy and version/build.
 - Settings must not open over an active collection/selection round.
