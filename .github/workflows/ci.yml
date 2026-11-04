@@ -29,11 +29,17 @@ jobs:
           echo "udid=$UDID" >> "$GITHUB_OUTPUT"
       - name: Build & test
         run: |
-          set -o pipefail
+          mkdir -p build
+          set +e
           xcodebuild test -project FingerPicker.xcodeproj -scheme FingerPicker \
             -destination "id=${{ steps.sim.outputs.udid }}" \
             -resultBundlePath build/TestResults.xcresult \
-            CODE_SIGNING_ALLOWED=NO | tee build/xcodebuild.log | tail -80
+            CODE_SIGNING_ALLOWED=NO > build/xcodebuild.log 2>&1
+          status=$?
+          echo "---- errors ----"; grep -E "error:" build/xcodebuild.log | cut -c1-600 | head -40
+          echo "---- test cases ----"; grep -E "^Test Case .* (passed|failed)" build/xcodebuild.log | cut -c1-200
+          echo "---- summary ----"; grep -E "Executed [0-9]+ tests" build/xcodebuild.log | tail -4
+          exit $status
       - name: Upload results
         if: always()
         uses: actions/upload-artifact@v4
