@@ -9,8 +9,10 @@ Usage: python3 tools/make_icon.py
 """
 import os
 import numpy as np
+from PIL import ImageCms
 from PIL import Image, ImageDraw, ImageFilter
 
+SRGB = ImageCms.ImageCmsProfile(ImageCms.createProfile("sRGB")).tobytes()
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT_ICON = os.path.join(ROOT, "App/Resources/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png")
 OUT_COPY = os.path.join(ROOT, "Design/icon/AppIcon-1024.png")
@@ -23,11 +25,11 @@ LIME = (102, 230, 102); VIOLET = (184, 102, 255)
 
 # (cx, cy, radius, stroke, color, intensity) in 1024 space. First = winner.
 RINGS = [
-    (570, 560, 168, 58, CORAL, 1.00),   # winner
-    (330, 470, 140, 46, CYAN, 0.80),
-    (700, 300, 130, 42, VIOLET, 0.78),
-    (440, 760, 128, 42, AMBER, 0.80),
-    (770, 770, 118, 38, LIME, 0.72),
+    (540, 545, 170, 60, CORAL, 1.00),   # winner
+    (315, 410, 135, 44, CYAN, 0.85),
+    (740, 330, 118, 40, VIOLET, 0.82),
+    (345, 740, 125, 42, AMBER, 0.85),
+    (735, 720, 112, 38, LIME, 0.80),
 ]
 
 
@@ -63,44 +65,50 @@ def col(c):
 
 def main():
     yy, xx = np.mgrid[0:N, 0:N].astype(np.float32)
-    # Background: near-black with extremely subtle vignette lift toward centre.
-    d = np.sqrt((xx - 540) ** 2 + (yy - 520) ** 2) / 800
-    img = BG[None, None, :] * (1.0 + 0.55 * np.clip(1 - d, 0, 1)[..., None] ** 2)
+    # Background: near-black with a barely-there lift toward centre.
+    d = np.sqrt((xx - 530) ** 2 + (yy - 530) ** 2) / 800
+    img = BG[None, None, :] * (1.0 + 0.35 * np.clip(1 - d, 0, 1)[..., None] ** 2)
     img = np.broadcast_to(img, (N, N, 3)).copy()
 
-    # Radial colour bloom from the winner.
+    # Radial colour bloom spreading from the winner.
     wx, wy, wr, ww, wc, _ = RINGS[0]
     dist = np.sqrt((xx - wx) ** 2 + (yy - wy) ** 2)
-    bloom = np.exp(-(dist / 430.0) ** 2) * 0.30 + np.exp(-(dist / 700.0) ** 1.5) * 0.10
+    bloom = np.exp(-(dist / 360.0) ** 2) * 0.26 + np.exp(-(dist / 640.0) ** 1.5) * 0.07
     img += bloom[..., None] * col(wc)
 
-    add = np.zeros_like(img)
+    glow_add = np.zeros_like(img)
     for i, (cx, cy, r, w, c, k) in enumerate(RINGS):
         m = ring_mask(cx, cy, r, w)
-        disc = ring_mask(cx, cy, r - w / 2, w, fill=True)
         cc = col(c)
-        # soft wide glow, mid glow, tight halo
-        glow = blur(m, 70) * 1.5 + blur(m, 28) * 0.9 + blur(m, 9) * 0.55
-        add += glow[..., None] * cc * k * 0.85
+        glow = blur(m, 55) * 0.95 + blur(m, 20) * 0.85 + blur(m, 6) * 0.45
+        glow_add += glow[..., None] * cc * k * (1.7 if i == 0 else 1.0)
         # faint fingertip-contact fill inside the ring
-        add += (disc * 0.10 * k)[..., None] * cc
-        # ring body: saturated colour with whitened hot core
-        core = m[..., None]
-        edge = blur(m, 5)
-        hot = np.clip(edge * 1.6 - 0.35, 0, 1)[..., None]
-        body = cc * (1.0 if i == 0 else 0.95)
-        add += core * (body * (0.55 + 0.45 * k) + hot * (0.35 if i == 0 else 0.18))
+        disc = ring_mask(cx, cy, r - w / 2, w, fill=True)
+        glow_add += (disc * 0.07 * k)[..., None] * cc
         if i == 0:
-            # winner centre dot + extra crisp halo ring
-            dot = ring_mask(cx, cy, 22, 0, fill=True)
-            add += blur(dot, 14)[..., None] * cc * 0.9 + dot[..., None] * (cc * 0.6 + 0.4)
-            halo = ring_mask(cx, cy, r + 70, 8)
-            add += (halo * 0.50)[..., None] * cc + blur(halo, 10)[..., None] * cc * 0.5
+            dot = ring_mask(cx, cy, 20, 0, fill=True)
+            glow_add += blur(dot, 16)[..., None] * cc * 0.9
+    out = 1 - (1 - np.clip(img, 0, 1)) * np.exp(-glow_add * 1.1)
 
-    # Screen-style combine so overlaps glow without hard clipping.
-    add = np.clip(add, 0, None)
-    out = 1 - (1 - np.clip(img, 0, 1)) * np.exp(-add * 1.15)
-    # Gentle tone shaping keeps the background dark.
+    cov = np.zeros((N, N), np.float32)
+    # Ring bodies: saturated colour composited over the glow; hot core on edges.
+    for i, (cx, cy, r, w, c, k) in enumerate(RINGS):
+        m = ring_mask(cx, cy, r, w)
+        cc = col(c)
+        # soft hot core: blurred centre-line highlight (no hard stripe)
+        core = blur(ring_mask(cx, cy, r, w * 0.45), 4)
+        tint = cc * (0.82 + 0.18 * k)
+        body = tint + core[..., None] * (0.22 if i == 0 else 0.10) * (1 - tint)
+        # light-like screen blend so overlaps brighten instead of occluding
+        out = out * (1 - m[..., None]) + body * m[..., None]
+        cov += m
+        if i == 0:
+            dot = ring_mask(cx, cy, 20, 0, fill=True)
+            dc = cc + 0.45 * (1 - cc)
+            out = out * (1 - dot[..., None]) + dc * dot[..., None]
+    # where two rings cross, light adds up: soft brightening of the overlap
+    ovl = np.clip(cov - 1.0, 0, 1)
+    out = out + ovl[..., None] * (1 - out) * 0.38
     out = np.clip(out, 0, 1)
     rgb = (out * 255 + 0.5).astype(np.uint8)
     im = Image.fromarray(rgb, "RGB")
@@ -129,7 +137,7 @@ if __name__ == "__main__":
     icon = main()
     for p in (OUT_ICON, OUT_COPY, OUT_SHEET):
         os.makedirs(os.path.dirname(p), exist_ok=True)
-    icon.save(OUT_ICON, optimize=True)
-    icon.save(OUT_COPY, optimize=True)
-    sheet(icon).save(OUT_SHEET, optimize=True)
+    icon.save(OUT_ICON, optimize=True, icc_profile=SRGB)
+    icon.save(OUT_COPY, optimize=True, icc_profile=SRGB)
+    sheet(icon).save(OUT_SHEET, optimize=True, icc_profile=SRGB)
     print("wrote", OUT_ICON, OUT_COPY, OUT_SHEET)
