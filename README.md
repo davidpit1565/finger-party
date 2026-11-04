@@ -16,6 +16,7 @@ An iPhone-first, offline-capable social finger-selection game. The core experien
 ## Research
 - [Market and competitor research](RESEARCH/01-market-and-competitors.md)
 - [Apple, privacy, age ratings and App Store research](RESEARCH/02-apple-platform-and-privacy.md)
+- [Expanded competitor map and naming risk](RESEARCH/03-expanded-competitor-map.md)
 
 ## Status
 Research phase. No final brand name, visual identity, product scope or implementation architecture has been approved yet.
