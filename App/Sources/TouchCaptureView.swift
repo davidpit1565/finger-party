@@ -32,7 +32,8 @@ final class TouchCaptureUIView: UIView {
 
     override func layoutSubviews() {
         super.layoutSubviews()
-        guard bounds.size != lastBoundsSize else { return }
+        // Ignore transient zero-size layouts so they cannot be mistaken for a rotation.
+        guard bounds.size != .zero, bounds.size != lastBoundsSize else { return }
         let hadSize = lastBoundsSize != .zero
         lastBoundsSize = bounds.size
         if hadSize { invalidate() }   // rotation / resize: old coordinates are meaningless
