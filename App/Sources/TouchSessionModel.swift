@@ -1,6 +1,7 @@
 import Foundation
 import Observation
 import UIKit
+import QuartzCore
 import FingerPickerCore
 
 /// Single source of truth for the play surface. Wraps the pure `RoundController`, drives its
@@ -46,7 +47,12 @@ final class TouchSessionModel {
         let center = NotificationCenter.default
         for name in [UIApplication.willResignActiveNotification, UIApplication.didEnterBackgroundNotification] {
             observers.append(center.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
-                MainActor.assumeIsolated { self?.interrupt() }
+                MainActor.assumeIsolated {
+                    guard let self else { return }
+                    // A frozen result screen is safe to keep through a brief interruption.
+                    if case .result = self.phase { return }
+                    self.interrupt()
+                }
             })
         }
         sync()
@@ -109,12 +115,10 @@ final class TouchSessionModel {
             selectorTask?.cancel()
             selectorTask = nil
             selectorID = revealed.winnerID
-            selectorFinished = true
+            markSelectorFinished()
         }
         controller.finishReveal()
         sync()
-        if settings.hapticsEnabled { haptics.winner() }
-        if settings.soundEnabled { sound.winner() }
         if let pos = winnerPosition {
             announce("Finger \(pos.index + 1) of \(pos.total) selected")
         }
@@ -168,8 +172,16 @@ final class TouchSessionModel {
                 do { try await Task.sleep(nanoseconds: UInt64(step.dwell * 1_000_000_000)) } catch { return }
             }
             guard let self, !Task.isCancelled else { return }
-            self.selectorFinished = true
+            self.markSelectorFinished()
         }
+    }
+
+    /// Selector has landed on the winner: flip the flag and fire the cues once, in sync with the visuals.
+    private func markSelectorFinished() {
+        guard !selectorFinished else { return }
+        selectorFinished = true
+        if settings.hapticsEnabled { haptics.winner() }
+        if settings.soundEnabled { sound.winner() }
     }
 
     /// Copies controller state into observed properties (only when changed, to limit view churn).
@@ -219,7 +231,7 @@ final class TouchSessionModel {
 extension TouchSessionModel {
     static func makeLive() -> TouchSessionModel {
         let settings = SettingsStore()
-        let clock: () -> Double = { ProcessInfo.processInfo.systemUptime }
+        let clock: () -> Double = { CACurrentMediaTime() }
         let reduce: () -> Bool = { UIAccessibility.isReduceMotionEnabled }
         let haptics = HapticsService(settings: settings)
         let sound = SoundService(settings: settings)

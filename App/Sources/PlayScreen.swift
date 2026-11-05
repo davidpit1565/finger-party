@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import FingerPickerCore
 
 struct PlayScreen: View {
@@ -16,6 +17,14 @@ struct PlayScreen: View {
         .sheet(isPresented: $showSettings) {
             SettingsSheet(settings: model.settings)
         }
+        // Edge touches shouldn't be delayed/cancelled by system gestures during a round.
+        .persistentSystemOverlays(.hidden)
+        .defersSystemGestures(on: .all)
+        // Keep the screen awake while fingers are down or a result is showing.
+        .onChange(of: model.phase) { _, phase in
+            UIApplication.shared.isIdleTimerDisabled = (phase != .idle)
+        }
+        .onDisappear { UIApplication.shared.isIdleTimerDisabled = false }
     }
 
     // MARK: Play surface (full screen; its bounds are the coordinate space for touches)
@@ -34,7 +43,7 @@ struct PlayScreen: View {
                     RingMarkerView(color: Theme.color(p.colorIndex),
                                    emphasis: emphasis(for: p),
                                    reduceMotion: reduceMotion)
-                        .frame(width: 96, height: 96)
+                        .frame(width: 144, height: 144)
                         .position(point(p.point, in: geo.size))
                         .transition(.opacity)
                         .allowsHitTesting(false)
@@ -105,10 +114,10 @@ struct PlayScreen: View {
     }
 
     private var showsGear: Bool {
-        switch model.phase {
-        case .idle, .collecting: return true
-        default: return false
-        }
+        // Only when idle: a finger landing on the gear would be swallowed and never join the round,
+        // and Settings must never open over an active round.
+        if case .idle = model.phase { return true }
+        return false
     }
 
     private var gearButton: some View {
@@ -121,7 +130,6 @@ struct PlayScreen: View {
                 .frame(width: 44, height: 44)
                 .contentShape(Rectangle())
         }
-        .opacity(0.6)
         .accessibilityLabel("Settings")
         .accessibilityHint("Opens sound and haptics settings")
         .accessibilityIdentifier("settingsButton")
@@ -203,14 +211,14 @@ struct PlayScreen: View {
                                                : "Lift all fingers from the screen first")
             .accessibilityIdentifier("playAgainButton")
 
-            if !model.canReplay {
-                Text("Lift your fingers, then tap Play Again")
-                    .font(.footnote)
-                    .foregroundStyle(ink)
-                    .multilineTextAlignment(.center)
-                    .allowsHitTesting(false)
-                    .accessibilityHidden(true)
-            }
+            // Always occupies its space so Winner / Play Again don't jump when fingers lift.
+            Text("Lift your fingers, then tap Play Again")
+                .font(.footnote)
+                .foregroundStyle(ink)
+                .multilineTextAlignment(.center)
+                .opacity(model.canReplay ? 0 : 1)
+                .allowsHitTesting(false)
+                .accessibilityHidden(true)
         }
         .padding(.bottom, 24)
     }

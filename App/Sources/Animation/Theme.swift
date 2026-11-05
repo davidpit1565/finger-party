@@ -26,10 +26,13 @@ enum Theme {
     /// Legible text color to place over the marker/winner color at `onColorIndex`.
     static func overlayText(onColorIndex: Int) -> Color {
         if Palette.prefersDarkText(on: paletteRGB(onColorIndex)) {
-            return Color(.sRGB, red: 0.04, green: 0.04, blue: 0.07, opacity: 0.92)
+            return ink
         }
         return Color.white
     }
+
+    /// Near-black ink used for text and halos on top of winner colors.
+    static let ink = Color(.sRGB, red: 0.04, green: 0.04, blue: 0.07, opacity: 0.92)
 
     /// Muted text for hints on the dark background.
     static var secondaryText: Color {

@@ -41,19 +41,16 @@ struct WinnerTakeoverView: View {
                     .opacity(reduceMotion ? Double(progress) : 1.0)
                     .position(x: origin.x, y: origin.y)
 
-                // Persistent winner halo: soft glow + crisp ring with a dark under-ring
-                // so it stays visible on any winner color (including bright yellow).
+                // Persistent winner halo in dark ink: >= 5:1 on every palette color (white was ~1.1:1
+                // on chartreuse/lime/yellow). Fades in with the wave so the point is never unmarked.
                 ZStack {
-                    GlowDisc(color: .white, intensity: 0.7)
+                    GlowDisc(color: Theme.ink, intensity: 0.35)
                         .frame(width: 150, height: 150)
                     Circle()
-                        .strokeBorder(Color.black.opacity(0.28), lineWidth: 9)
-                        .frame(width: 66, height: 66)
+                        .strokeBorder(Theme.ink, lineWidth: 6)
+                        .frame(width: 64, height: 64)
                     Circle()
-                        .strokeBorder(Color.white, lineWidth: 5)
-                        .frame(width: 60, height: 60)
-                    Circle()
-                        .fill(Color.white)
+                        .fill(Theme.ink)
                         .frame(width: 12, height: 12)
                 }
                 .opacity(haloOpacity)
@@ -84,7 +81,7 @@ struct WinnerTakeoverView: View {
         } else {
             withAnimation(.timingCurve(0.16, 0.84, 0.3, 1.0, duration: d)) { progress = 1 }
         }
-        withAnimation(.easeOut(duration: 0.3).delay(d * 0.55)) { haloOpacity = 1 }
+        withAnimation(.easeOut(duration: 0.25).delay(0.05)) { haloOpacity = 1 }
         do {
             try await Task.sleep(nanoseconds: UInt64(d * 1_000_000_000))
         } catch {

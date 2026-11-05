@@ -117,4 +117,14 @@ final class PaletteTests: XCTestCase {
         XCTAssertEqual(Set(Palette.colors.map { "\($0.r),\($0.g),\($0.b)" }).count, Palette.count)
         for c in Palette.colors { XCTAssertTrue((0...1).contains(c.r) && (0...1).contains(c.g) && (0...1).contains(c.b)) }
     }
+
+    /// Text chosen by `prefersDarkText` must reach WCAG AA (4.5:1) on every palette color.
+    func testOverlayTextContrastMeetsAAOnEveryPaletteColor() {
+        let inkLum = Palette.luminance(Palette.RGB(r: 0.04, g: 0.04, b: 0.07))
+        for c in Palette.colors {
+            let l = Palette.luminance(c)
+            let ratio = Palette.prefersDarkText(on: c) ? (l + 0.05) / (inkLum + 0.05) : 1.05 / (l + 0.05)
+            XCTAssertGreaterThanOrEqual(ratio, 4.5, "\(c)")
+        }
+    }
 }

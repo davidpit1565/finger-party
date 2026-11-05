@@ -54,17 +54,15 @@ struct RingMarkerView: View {
     var body: some View {
         ZStack {
             GlowDisc(color: color, intensity: glowIntensity * (pulse ? 1.0 : 0.85))
-                .frame(width: 96, height: 96)
-            GlowRing(color: color, diameter: 56, lineWidth: 4, glowOpacity: ringGlowOpacity)
-            Circle()
-                .fill(color.opacity(emphasis == .selectorOn || emphasis == .winner ? 1.0 : 0.85))
-                .frame(width: 10, height: 10)
+                .frame(width: 144, height: 144)
+            // 88pt ring: wider than a fingertip pad so it stays visible around the finger.
+            GlowRing(color: color, diameter: 88, lineWidth: 5, glowOpacity: ringGlowOpacity)
         }
-        .frame(width: 96, height: 96)
+        .frame(width: 144, height: 144)
         .scaleEffect(pulse ? 1.035 : 1.0)
         .scaleEffect(emphasisScale)
         .opacity(contentOpacity)
-        .animation(.easeOut(duration: 0.12), value: emphasis)
+        .animation(.easeOut(duration: 0.07), value: emphasis)
         .scaleEffect(appeared ? 1.0 : 0.3)
         .opacity(appeared ? 1.0 : 0.0)
         .onAppear {
