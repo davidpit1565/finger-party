@@ -9,34 +9,25 @@ struct PlayScreen: View {
 
     var body: some View {
         ZStack {
-            playLayer
-                .ignoresSafeArea()
+            playLayer.ignoresSafeArea()
             overlayLayer
         }
         .background(Theme.background.ignoresSafeArea())
-        .sheet(isPresented: $showSettings) {
-            SettingsSheet(settings: model.settings)
-        }
-        // Edge touches shouldn't be delayed/cancelled by system gestures during a round.
+        .sheet(isPresented: $showSettings) { SettingsSheet(settings: model.settings) }
         .persistentSystemOverlays(.hidden)
         .defersSystemGestures(on: .all)
-        // Keep the screen awake while fingers are down or a result is showing.
         .onChange(of: model.phase) { _, phase in
             UIApplication.shared.isIdleTimerDisabled = (phase != .idle)
         }
         .onDisappear { UIApplication.shared.isIdleTimerDisabled = false }
     }
 
-    // MARK: Play surface (full screen; its bounds are the coordinate space for touches)
-
-    private var shownParticipants: [Participant] {
-        model.round?.participants ?? model.candidates
-    }
+    private var shownParticipants: [Participant] { model.round?.participants ?? model.candidates }
 
     private var playLayer: some View {
         GeometryReader { geo in
             ZStack {
-                Theme.background
+                AmbientBackdrop(reduceMotion: reduceMotion)
                 TouchCaptureView(model: model)
 
                 ForEach(shownParticipants) { p in
@@ -45,11 +36,11 @@ struct PlayScreen: View {
                                    reduceMotion: reduceMotion)
                         .frame(width: 144, height: 144)
                         .position(point(p.point, in: geo.size))
-                        .transition(.opacity)
+                        .transition(.scale(scale: 0.55).combined(with: .opacity))
                         .allowsHitTesting(false)
                         .accessibilityHidden(true)
                 }
-                .animation(reduceMotion ? nil : .easeOut(duration: 0.18),
+                .animation(reduceMotion ? nil : .spring(response: 0.34, dampingFraction: 0.62),
                            value: shownParticipants.map(\.id))
 
                 if let round = model.round, isRevealOrResult {
@@ -84,51 +75,53 @@ struct PlayScreen: View {
         return p.id == model.selectorID ? .selectorOn : .normal
     }
 
-    // MARK: Controls and text (small, away from the play area; never block touches elsewhere)
-
     private var overlayLayer: some View {
         ZStack {
             if case .idle = model.phase {
-                Text("Place 2 or more fingers")
-                    .font(.title3)
-                    .foregroundStyle(Theme.secondaryText)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 32)
+                IdleWelcome(reduceMotion: reduceMotion)
                     .allowsHitTesting(false)
-                    .accessibilityLabel("Place 2 or more fingers")
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel("Finger Party. Bring everyone in. Place two or more fingers to start.")
                     .accessibilityHint("Touch the screen with two or more fingers to pick one at random")
                     .accessibilityIdentifier("idleHint")
             }
 
             VStack {
-                HStack {
+                HStack(alignment: .center) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "sparkle")
+                            .font(.system(size: 15, weight: .black))
+                            .foregroundStyle(Theme.cyan)
+                        Text("FINGER PARTY")
+                            .font(.system(size: 12, weight: .black, design: .rounded))
+                            .tracking(2.4)
+                            .foregroundStyle(.white.opacity(0.78))
+                    }
                     Spacer()
                     if showsGear { gearButton }
                 }
                 Spacer()
                 bottomContent
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
+            .padding(.horizontal, 22)
+            .padding(.vertical, 12)
         }
     }
 
     private var showsGear: Bool {
-        // Only when idle: a finger landing on the gear would be swallowed and never join the round,
-        // and Settings must never open over an active round.
         if case .idle = model.phase { return true }
         return false
     }
 
     private var gearButton: some View {
-        Button {
-            showSettings = true
-        } label: {
-            Image(systemName: "gearshape")
-                .font(.title3)
-                .foregroundStyle(Theme.secondaryText)
+        Button { showSettings = true } label: {
+            Image(systemName: "slider.horizontal.3")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(.white.opacity(0.86))
                 .frame(width: 44, height: 44)
-                .contentShape(Rectangle())
+                .background(.white.opacity(0.075), in: Circle())
+                .overlay(Circle().stroke(.white.opacity(0.12), lineWidth: 1))
+                .contentShape(Circle())
         }
         .accessibilityLabel("Settings")
         .accessibilityHint("Opens sound and haptics settings")
@@ -139,25 +132,27 @@ struct PlayScreen: View {
     private var bottomContent: some View {
         switch model.phase {
         case .collecting:
-            VStack(spacing: 8) {
-                Text("Place 2 or more fingers")
-                    .font(.footnote)
-                    .foregroundStyle(Theme.secondaryText)
-                    .accessibilityHidden(true)
-                countText
+            VStack(spacing: 9) {
+                Text("HOLD YOUR SPOT")
+                    .font(.system(size: 10, weight: .heavy, design: .rounded))
+                    .tracking(2.1)
+                    .foregroundStyle(Theme.cyan.opacity(0.9))
+                countPill
             }
-            .padding(.bottom, 12)
+            .padding(.bottom, 16)
             .allowsHitTesting(false)
         case .settling:
-            countText
-                .padding(.bottom, 12)
-                .allowsHitTesting(false)
+            countPill.padding(.bottom, 16).allowsHitTesting(false)
         case .countdown:
-            VStack(spacing: 10) {
-                countText
+            VStack(spacing: 12) {
+                Text("GET READY…")
+                    .font(.system(size: 11, weight: .heavy, design: .rounded))
+                    .tracking(2.4)
+                    .foregroundStyle(Theme.coral)
+                countPill
                 CountdownBar(model: model)
             }
-            .padding(.bottom, 12)
+            .padding(.bottom, 16)
             .allowsHitTesting(false)
         case .result(let round):
             resultContent(round)
@@ -166,25 +161,45 @@ struct PlayScreen: View {
         }
     }
 
-    private var countText: some View {
+    private var countPill: some View {
         let n = model.candidates.count
-        return Text(n == 1 ? "1 finger" : "\(n) fingers")
-            .font(.footnote.weight(.medium))
-            .foregroundStyle(Theme.secondaryText)
-            .accessibilityLabel(n == 1 ? "1 finger detected" : "\(n) fingers detected")
-            .accessibilityIdentifier("fingerCount")
+        return HStack(spacing: 8) {
+            Circle().fill(Theme.lime).frame(width: 7, height: 7)
+                .shadow(color: Theme.lime.opacity(0.8), radius: 6)
+            Text(n == 1 ? "1 FINGER IN" : "\(n) FINGERS IN")
+                .font(.system(size: 12, weight: .heavy, design: .rounded))
+                .tracking(1.8)
+                .foregroundStyle(.white)
+        }
+        .padding(.horizontal, 17)
+        .padding(.vertical, 11)
+        .background(.ultraThinMaterial.opacity(0.72), in: Capsule())
+        .overlay(Capsule().stroke(.white.opacity(0.15), lineWidth: 1))
+        .accessibilityElement()
+        .accessibilityLabel(n == 1 ? "1 finger detected" : "\(n) fingers detected")
+        .accessibilityIdentifier("fingerCount")
     }
 
     private func resultContent(_ round: Round) -> some View {
         let ink = Theme.overlayText(onColorIndex: round.winnerColorIndex)
         let pos = model.winnerPosition
         let detail = pos.map { "Finger \($0.index + 1) of \($0.total)" } ?? ""
-        return VStack(spacing: 12) {
-            VStack(spacing: 4) {
-                Text("Winner")
-                    .font(.largeTitle.weight(.bold))
+        return VStack(spacing: 18) {
+            VStack(spacing: 7) {
+                Text("IT'S A MATCH!")
+                    .font(.system(size: 11, weight: .black, design: .rounded))
+                    .tracking(3)
+                    .opacity(0.7)
+                Text("WINNER")
+                    .font(.system(size: 42, weight: .black, design: .rounded))
+                    .tracking(-1.5)
+                    .minimumScaleFactor(0.7)
+                    .lineLimit(1)
                 if !detail.isEmpty {
-                    Text(detail).font(.title3)
+                    Text(detail.uppercased())
+                        .font(.system(size: 13, weight: .bold, design: .rounded))
+                        .tracking(2)
+                        .opacity(0.76)
                 }
             }
             .foregroundStyle(ink)
@@ -194,33 +209,35 @@ struct PlayScreen: View {
             .accessibilityAddTraits(.isHeader)
             .accessibilityIdentifier("winnerLabel")
 
-            Button {
-                model.replay()
-            } label: {
-                Text("Play Again")
-                    .font(.headline)
-                    .foregroundStyle(ink)
-                    .padding(.horizontal, 28)
-                    .frame(minHeight: 48)
-                    .overlay(Capsule().stroke(ink, lineWidth: 2))
-                    .contentShape(Capsule())
+            Button { model.replay() } label: {
+                HStack(spacing: 10) {
+                    Text("PLAY AGAIN")
+                        .tracking(1.6)
+                    Image(systemName: "arrow.clockwise")
+                        .font(.system(size: 13, weight: .black))
+                }
+                .font(.system(size: 14, weight: .black, design: .rounded))
+                .foregroundStyle(ink)
+                .padding(.horizontal, 27)
+                .frame(minHeight: 54)
+                .background(ink.opacity(0.09), in: Capsule())
+                .overlay(Capsule().stroke(ink.opacity(0.65), lineWidth: 1.5))
+                .contentShape(Capsule())
             }
             .disabled(!model.canReplay)
             .opacity(model.canReplay ? 1 : 0.45)
-            .accessibilityHint(model.canReplay ? "Starts a new round"
-                                               : "Lift all fingers from the screen first")
+            .accessibilityHint(model.canReplay ? "Starts a new round" : "Lift all fingers from the screen first")
             .accessibilityIdentifier("playAgainButton")
 
-            // Always occupies its space so Winner / Play Again don't jump when fingers lift.
-            Text("Lift your fingers, then tap Play Again")
-                .font(.footnote)
-                .foregroundStyle(ink)
-                .multilineTextAlignment(.center)
+            Text("Lift your fingers, then play again")
+                .font(.system(size: 11, weight: .medium, design: .rounded))
+                .foregroundStyle(ink.opacity(0.72))
                 .opacity(model.canReplay ? 0 : 1)
                 .allowsHitTesting(false)
                 .accessibilityHidden(true)
         }
-        .padding(.bottom, 24)
+        .padding(.bottom, 28)
+        .transition(.move(edge: .bottom).combined(with: .opacity))
     }
 }
 
@@ -228,19 +245,17 @@ private extension String {
     var lowercasedFirst: String { prefix(1).lowercased() + dropFirst() }
 }
 
-/// Split out so only this small view re-renders every timer tick.
 private struct CountdownBar: View {
     let model: TouchSessionModel
-
     var body: some View {
         let progress = model.countdownProgress ?? 0
         Capsule()
-            .fill(Theme.secondaryText.opacity(0.25))
-            .frame(width: 120, height: 4)
+            .fill(.white.opacity(0.16))
+            .frame(width: 142, height: 5)
             .overlay(alignment: .leading) {
                 Capsule()
-                    .fill(Theme.secondaryText)
-                    .frame(width: 120 * progress, height: 4)
+                    .fill(LinearGradient(colors: [Theme.cyan, Theme.violet], startPoint: .leading, endPoint: .trailing))
+                    .frame(width: 142 * progress, height: 5)
             }
             .accessibilityElement()
             .accessibilityLabel("Selecting")
