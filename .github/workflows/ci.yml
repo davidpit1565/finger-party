@@ -40,6 +40,26 @@ jobs:
           echo "---- test cases ----"; grep -E "^Test Case .* (passed|failed)" build/xcodebuild.log | cut -c1-200
           echo "---- summary ----"; grep -E "Executed [0-9]+ tests" build/xcodebuild.log | tail -4
           exit $status
+      - name: Export simulator screenshots
+        if: always()
+        run: |
+          mkdir -p build/screenshots
+          if [ -d build/TestResults.xcresult ]; then
+            xcrun xcresulttool export attachments \\
+              --path build/TestResults.xcresult \\
+              --output-path build/screenshots
+            echo "---- exported PNG screenshots ----"
+            find build/screenshots -type f -name '*.png' -print
+          else
+            echo "No xcresult bundle was produced; screenshots unavailable."
+          fi
+      - name: Upload simulator screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: simulator-screenshots
+          path: build/screenshots
+          if-no-files-found: warn
       - name: Upload results
         if: always()
         uses: actions/upload-artifact@v4
