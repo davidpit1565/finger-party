@@ -80,3 +80,18 @@ Uncertainties to verify on first run: exact Xcode version on `macos-15` (the `ap
 
 ## 8. Reference
 Apple documentation to re-check at execution time: App Store Connect API keys; "Distributing your app for beta testing and releases"; `xcodebuild -help` for `-authenticationKey*` flags; Screenshot specifications; Age ratings values and definitions.
+
+
+## Local one-command upload (recommended)
+On a Mac with Xcode and `brew install xcodegen`:
+
+```bash
+export APPLE_TEAM_ID=XXXXXXXXXX
+export ASC_KEY_ID=XXXXXXXXXX
+export ASC_ISSUER_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+export ASC_KEY_PATH=~/path/to/AuthKey_XXXXXXXXXX.p8
+VALIDATE_ONLY=1 ./scripts/testflight.sh   # dry run: archive + export, no upload
+./scripts/testflight.sh                   # real upload to TestFlight
+```
+The app record (name + bundle ID `com.davidpit.fingerpicker`) must already exist in App Store Connect.
+The script never submits to App Review. GitHub secrets are only needed for the cloud workflow.
