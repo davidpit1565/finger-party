@@ -1,43 +1,25 @@
-// Theme.swift - shared visual tokens for Finger Picker.
-//
-// DESIGN DECISIONS (full notes: DESIGN/DESIGN-NOTES.md)
-// - Background #0B0B10: near-black with a hint of blue so saturated hues pop and OLED
-//   stays calm; one solid color, no gradient behind touch markers (spec section 7).
-// - Marker colors come only from FingerPickerCore.Palette (single source of truth), sRGB.
-// - Overlay text flips between near-black and white via Palette.prefersDarkText so it is
-//   legible on every possible winner color (yellow / chartreuse need dark text).
-// - Durations: marker appear spring ~0.35s; selector emphasis change 0.12s ease-out (crisp
-//   hopping); winner wave 0.9s ease-out; Reduce Motion crossfade 0.35s; idle pulse 1.6s.
-// - No blur stacks, no particles: glows are radial gradients + layered strokes.
-
 import SwiftUI
 import FingerPickerCore
 
 enum Theme {
-    /// Near-black deep charcoal play background (#0B0B10).
-    static let background = Color(.sRGB, red: 11.0 / 255.0, green: 11.0 / 255.0, blue: 16.0 / 255.0, opacity: 1)
+    static let background = Color(red: 7/255, green: 10/255, blue: 25/255)
+    static let surface = Color(red: 18/255, green: 23/255, blue: 47/255)
+    static let cyan = Color(red: 0.25, green: 0.91, blue: 1.0)
+    static let coral = Color(red: 1.0, green: 0.31, blue: 0.43)
+    static let violet = Color(red: 0.58, green: 0.36, blue: 1.0)
+    static let lime = Color(red: 0.76, green: 1.0, blue: 0.30)
 
-    /// Palette color for a color index (wraps; negative-safe).
     static func color(_ colorIndex: Int) -> Color {
         let rgb = paletteRGB(colorIndex)
         return Color(.sRGB, red: rgb.r, green: rgb.g, blue: rgb.b, opacity: 1)
     }
 
-    /// Legible text color to place over the marker/winner color at `onColorIndex`.
     static func overlayText(onColorIndex: Int) -> Color {
-        if Palette.prefersDarkText(on: paletteRGB(onColorIndex)) {
-            return ink
-        }
-        return Color.white
+        Palette.prefersDarkText(on: paletteRGB(onColorIndex)) ? ink : .white
     }
 
-    /// Near-black ink used for text and halos on top of winner colors.
-    static let ink = Color(.sRGB, red: 0.04, green: 0.04, blue: 0.07, opacity: 0.92)
-
-    /// Muted text for hints on the dark background.
-    static var secondaryText: Color {
-        Color(.sRGB, red: 1, green: 1, blue: 1, opacity: 0.55)
-    }
+    static let ink = Color(.sRGB, red: 0.04, green: 0.04, blue: 0.07, opacity: 0.96)
+    static var secondaryText: Color { Color.white.opacity(0.66) }
 
     private static func paletteRGB(_ index: Int) -> Palette.RGB {
         let n = Palette.colors.count
