@@ -1,5 +1,3 @@
-// WinnerTakeoverView.swift - expanding color reveal from the winner's point.
-
 import SwiftUI
 import FingerPickerCore
 
@@ -12,6 +10,7 @@ struct WinnerTakeoverView: View {
 
     @State private var progress: CGFloat = 0
     @State private var haloOpacity: Double = 0
+    @State private var burst = false
     @State private var completed = false
 
     init(origin: CGPoint, color: Color, started: Bool, reduceMotion: Bool, onCompleted: @escaping () -> Void) {
@@ -22,55 +21,52 @@ struct WinnerTakeoverView: View {
         self.onCompleted = onCompleted
     }
 
-    private var duration: Double { reduceMotion ? 0.35 : 0.9 }
+    private var duration: Double { reduceMotion ? 0.35 : 0.95 }
 
     var body: some View {
         GeometryReader { geo in
-            let radius = CGFloat(
-                RevealGeometry.coverRadius(
-                    origin: (x: Double(origin.x), y: Double(origin.y)),
-                    width: Double(geo.size.width),
-                    height: Double(geo.size.height)
-                )
-            ) + 24
+            let radius = CGFloat(RevealGeometry.coverRadius(
+                origin: (x: Double(origin.x), y: Double(origin.y)),
+                width: Double(geo.size.width), height: Double(geo.size.height)
+            )) + 34
             ZStack {
                 Circle()
                     .fill(color)
                     .frame(width: radius * 2, height: radius * 2)
-                    .scaleEffect(reduceMotion ? 1.0 : max(progress, 0.0001))
-                    .opacity(reduceMotion ? Double(progress) : 1.0)
-                    .position(x: origin.x, y: origin.y)
+                    .scaleEffect(reduceMotion ? 1 : max(progress, 0.0001))
+                    .opacity(reduceMotion ? Double(progress) : 1)
+                    .position(origin)
 
-                // Persistent winner halo in dark ink: >= 5:1 on every palette color (white was ~1.1:1
-                // on chartreuse/lime/yellow). Fades in with the wave so the point is never unmarked.
+                if !reduceMotion {
+                    Circle()
+                        .stroke(.white.opacity(burst ? 0 : 0.72), lineWidth: 3)
+                        .frame(width: 76, height: 76)
+                        .scaleEffect(burst ? 3.8 : 0.7)
+                        .position(origin)
+                }
+
                 ZStack {
-                    GlowDisc(color: Theme.ink, intensity: 0.35)
-                        .frame(width: 150, height: 150)
-                    Circle()
-                        .strokeBorder(Theme.ink, lineWidth: 6)
-                        .frame(width: 64, height: 64)
-                    Circle()
-                        .fill(Theme.ink)
-                        .frame(width: 12, height: 12)
+                    Circle().fill(Theme.ink.opacity(0.16)).frame(width: 126, height: 126)
+                    Circle().stroke(Theme.ink.opacity(0.22), lineWidth: 15).frame(width: 82, height: 82)
+                    Circle().stroke(Theme.ink, lineWidth: 5).frame(width: 58, height: 58)
+                    Circle().fill(Theme.ink).frame(width: 11, height: 11)
                 }
                 .opacity(haloOpacity)
-                .position(x: origin.x, y: origin.y)
+                .position(origin)
             }
             .frame(width: geo.size.width, height: geo.size.height)
         }
         .allowsHitTesting(false)
         .accessibilityHidden(true)
-        .task(id: started) {
-            await run()
-        }
+        .task(id: started) { await run() }
     }
 
     @MainActor
     private func run() async {
         guard started else {
-            // Reset for replay without animation.
             progress = 0
             haloOpacity = 0
+            burst = false
             completed = false
             return
         }
@@ -79,33 +75,15 @@ struct WinnerTakeoverView: View {
         if reduceMotion {
             withAnimation(.easeInOut(duration: d)) { progress = 1 }
         } else {
-            withAnimation(.timingCurve(0.16, 0.84, 0.3, 1.0, duration: d)) { progress = 1 }
+            withAnimation(.timingCurve(0.12, 0.82, 0.22, 1, duration: d)) { progress = 1 }
+            withAnimation(.easeOut(duration: 0.62).delay(0.08)) { burst = true }
         }
-        withAnimation(.easeOut(duration: 0.25).delay(0.05)) { haloOpacity = 1 }
-        do {
-            try await Task.sleep(nanoseconds: UInt64(d * 1_000_000_000))
-        } catch {
-            return // cancelled (view removed or started changed)
-        }
+        withAnimation(.easeOut(duration: 0.28).delay(0.04)) { haloOpacity = 1 }
+        do { try await Task.sleep(nanoseconds: UInt64(d * 1_000_000_000)) }
+        catch { return }
         if !completed {
             completed = true
             onCompleted()
         }
-    }
-}
-
-#Preview("Winner takeover") {
-    ZStack {
-        Theme.background.ignoresSafeArea()
-        WinnerTakeoverView(origin: CGPoint(x: 120, y: 260), color: Theme.color(3),
-                           started: true, reduceMotion: false, onCompleted: {})
-    }
-}
-
-#Preview("Winner takeover (reduce motion)") {
-    ZStack {
-        Theme.background.ignoresSafeArea()
-        WinnerTakeoverView(origin: CGPoint(x: 200, y: 400), color: Theme.color(2),
-                           started: true, reduceMotion: true, onCompleted: {})
     }
 }
