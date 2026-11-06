@@ -198,7 +198,9 @@ struct PlayScreen: View {
     }
 
     private func resultContent(_ round: Round) -> some View {
-        let ink = Theme.overlayText(onColorIndex: round.winnerColorIndex)
+        // Result copy sits on the dark canvas, not on the colored winner marker.
+        // Keep it white for consistent contrast across all three palette moods.
+        let resultInk = Color.white
         let pos = model.winnerPosition
         let detail = pos.map { "Finger \($0.index + 1) of \($0.total)" } ?? ""
         return VStack(spacing: 18) {
@@ -219,7 +221,7 @@ struct PlayScreen: View {
                         .opacity(0.76)
                 }
             }
-            .foregroundStyle(ink)
+            .foregroundStyle(resultInk)
             .allowsHitTesting(false)
             .accessibilityElement(children: .combine)
             .accessibilityLabel(detail.isEmpty ? "Winner" : "Winner: \(detail.lowercasedFirst)")
@@ -234,7 +236,7 @@ struct PlayScreen: View {
                         .font(.system(size: 13, weight: .black))
                 }
                 .font(.system(size: 14, weight: .black, design: .rounded))
-                .foregroundStyle(ink)
+                .foregroundStyle(resultInk)
                 .padding(.horizontal, 27)
                 .frame(minHeight: 54)
                 .background(.white.opacity(0.10), in: Capsule())
@@ -248,7 +250,7 @@ struct PlayScreen: View {
 
             Text("Lift your fingers, then play again")
                 .font(.system(size: 11, weight: .medium, design: .rounded))
-                .foregroundStyle(ink.opacity(0.72))
+                .foregroundStyle(resultInk.opacity(0.72))
                 .opacity(model.canReplay ? 0 : 1)
                 .allowsHitTesting(false)
                 .accessibilityHidden(true)
