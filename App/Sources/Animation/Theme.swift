@@ -14,8 +14,8 @@ enum Theme {
         return Color(.sRGB, red: rgb.r, green: rgb.g, blue: rgb.b, opacity: 1)
     }
 
-    static func overlayText(onColorIndex: Int) -> Color {
-        Palette.prefersDarkText(on: paletteRGB(onColorIndex)) ? ink : .white
+    static func overlayText(onColorIndex: Int, mood: ColorMood = .vivid) -> Color {
+        Palette.prefersDarkText(on: paletteRGB(onColorIndex, mood: mood)) ? ink : .white
     }
 
     static let ink = Color(.sRGB, red: 0.04, green: 0.04, blue: 0.07, opacity: 0.96)
