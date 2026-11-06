@@ -17,10 +17,16 @@ struct WinnerTakeoverView: View {
 
     var body: some View {
         GeometryReader { geo in
-            let maxRadius = CGFloat(RevealGeometry.coverRadius(
-                origin: (x: Double(origin.x), y: Double(origin.y)),
-                width: Double(geo.size.width), height: Double(geo.size.height)
-            )) + 28
+            let originX = Double(origin.x)
+            let originY = Double(origin.y)
+            let width = Double(geo.size.width)
+            let height = Double(geo.size.height)
+            let coverDistance = RevealGeometry.coverRadius(
+                origin: (x: originX, y: originY),
+                width: width,
+                height: height
+            )
+            let maxRadius = CGFloat(coverDistance) + CGFloat(28)
 
             ZStack {
                 // Three fine rings travel outward; no opaque color wash.
