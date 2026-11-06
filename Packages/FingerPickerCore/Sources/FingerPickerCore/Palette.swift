@@ -51,11 +51,10 @@ public enum Palette {
 
     public static var count: Int { colors.count }
 
-    /// Lowest palette index not currently in use; wraps if more fingers than colors.
-    public static func nextFreeIndex(used: Set<Int>) -> Int {
-        for i in 0..<count where !used.contains(i) { return i }
-        // All in use: reuse starting from the least-used slot (wrap by count of used).
-        return used.count % count
+    /// Assign the least-used color so repeats stay balanced beyond ten participants.
+    public static func nextFreeIndex(used: [Int]) -> Int {
+        let counts = (0..<count).map { index in used.filter { $0 == index }.count }
+        return counts.indices.min { counts[$0] < counts[$1] } ?? 0
     }
 
     /// Relative luminance (WCAG) of a palette color, for choosing legible overlay text.
