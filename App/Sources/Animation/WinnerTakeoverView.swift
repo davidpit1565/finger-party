@@ -1,8 +1,8 @@
 import SwiftUI
 import FingerPickerCore
 
-/// A restrained, cinematic winner reveal: the winner's color radiates outward,
-/// while the game canvas stays dark and the result remains readable.
+/// A cinematic reveal that preserves the dark canvas instead of flooding the screen
+/// with the winner's palette color.
 struct WinnerTakeoverView: View {
     let origin: CGPoint
     let color: Color
@@ -10,68 +10,65 @@ struct WinnerTakeoverView: View {
     let reduceMotion: Bool
     let onCompleted: () -> Void
 
-    @State private var progress: CGFloat = 0
-    @State private var ringProgress: CGFloat = 0
+    @State private var reveal: CGFloat = 0
     @State private var completed = false
 
-    private var duration: Double { reduceMotion ? 0.28 : 1.12 }
+    private var duration: Double { reduceMotion ? 0.24 : 1.05 }
 
     var body: some View {
         GeometryReader { geo in
-            let radius = CGFloat(RevealGeometry.coverRadius(
+            let maxRadius = CGFloat(RevealGeometry.coverRadius(
                 origin: (x: Double(origin.x), y: Double(origin.y)),
                 width: Double(geo.size.width), height: Double(geo.size.height)
-            )) + 42
+            )) + 28
 
             ZStack {
-                // A soft color wave, not a solid full-screen color wipe.
-                Circle()
-                    .fill(RadialGradient(
-                        colors: [color.opacity(0.30), color.opacity(0.15), color.opacity(0.045), .clear],
-                        center: .center, startRadius: 8, endRadius: radius
-                    ))
-                    .frame(width: radius * 2, height: radius * 2)
-                    .scaleEffect(reduceMotion ? 1 : max(progress, 0.001))
-                    .position(origin)
+                // Three fine rings travel outward; no opaque color wash.
+                ForEach(0..<3, id: \.self) { index in
+                    Circle()
+                        .stroke(
+                            LinearGradient(
+                                colors: [.white.opacity(0.88), color.opacity(0.68), color.opacity(0.08)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: index == 0 ? 2.2 : 1.15
+                        )
+                        .frame(width: 54, height: 54)
+                        .scaleEffect(1 + reveal * (maxRadius / 27) * (0.72 + CGFloat(index) * 0.18))
+                        .opacity(Double(max(0, 0.78 - reveal * (0.78 + Double(index) * 0.08))))
+                        .position(origin)
+                }
 
-                // Expanding luminous shockwave.
-                Circle()
-                    .stroke(LinearGradient(colors: [.white.opacity(0.92), color.opacity(0.12)],
-                                           startPoint: .topLeading, endPoint: .bottomTrailing),
-                            lineWidth: 2.5)
-                    .frame(width: 72, height: 72)
-                    .scaleEffect(1 + ringProgress * 8)
-                    .opacity(1 - Double(ringProgress))
-                    .position(origin)
-
-                // Fine orbiting sparks add a sense of energy without visual clutter.
+                // Small sparks travel only a short distance, keeping the result readable.
                 if !reduceMotion {
-                    ForEach(0..<12, id: \.self) { index in
-                        let angle = Double(index) * (.pi * 2 / 12)
-                        let distance = CGFloat(28 + ringProgress * 112)
+                    ForEach(0..<16, id: \.self) { index in
+                        let angle = Double(index) * (.pi * 2 / 16)
+                        let travel = CGFloat(18) + reveal * 76
                         Circle()
-                            .fill(index.isMultiple(of: 3) ? .white : color)
-                            .frame(width: index.isMultiple(of: 3) ? 4 : 2.5,
-                                   height: index.isMultiple(of: 3) ? 4 : 2.5)
-                            .shadow(color: color.opacity(0.9), radius: 7)
-                            .position(x: origin.x + CGFloat(cos(angle)) * distance,
-                                      y: origin.y + CGFloat(sin(angle)) * distance)
-                            .opacity(Double(1 - ringProgress) * 0.9)
+                            .fill(index.isMultiple(of: 4) ? .white : color)
+                            .frame(width: index.isMultiple(of: 4) ? 3.5 : 2, height: index.isMultiple(of: 4) ? 3.5 : 2)
+                            .shadow(color: color.opacity(0.8), radius: 5)
+                            .position(
+                                x: origin.x + CGFloat(cos(angle)) * travel,
+                                y: origin.y + CGFloat(sin(angle)) * travel
+                            )
+                            .opacity(Double(1 - reveal) * 0.85)
                     }
                 }
 
-                // Winner marker resolves in the center of the wave.
+                // A crisp winner seal appears at the touch point.
                 ZStack {
-                    Circle().fill(color.opacity(0.16)).frame(width: 132, height: 132).blur(radius: 16)
-                    Circle().stroke(color.opacity(0.65), lineWidth: 1.5).frame(width: 94, height: 94)
-                    Circle().stroke(.white.opacity(0.9), lineWidth: 3).frame(width: 72, height: 72)
+                    Circle().fill(color.opacity(0.13)).frame(width: 112, height: 112).blur(radius: 12)
+                    Circle().stroke(color.opacity(0.72), lineWidth: 1.4).frame(width: 82, height: 82)
+                    Circle().stroke(.white.opacity(0.92), lineWidth: 2.5).frame(width: 62, height: 62)
                     Image(systemName: "crown.fill")
-                        .font(.system(size: 27, weight: .bold))
+                        .font(.system(size: 23, weight: .bold))
                         .foregroundStyle(.white)
-                        .shadow(color: color, radius: 14)
+                        .shadow(color: color.opacity(0.9), radius: 9)
                 }
-                .scaleEffect(0.72 + progress * 0.28)
-                .opacity(progress)
+                .scaleEffect(0.72 + reveal * 0.28)
+                .opacity(reveal)
                 .position(origin)
             }
             .frame(width: geo.size.width, height: geo.size.height)
@@ -84,23 +81,17 @@ struct WinnerTakeoverView: View {
     @MainActor
     private func run() async {
         guard started else {
-            progress = 0
-            ringProgress = 0
+            reveal = 0
             completed = false
             return
         }
         guard !completed else { return }
 
-        if reduceMotion {
-            withAnimation(.easeOut(duration: duration)) {
-                progress = 1
-                ringProgress = 1
-            }
-        } else {
-            withAnimation(.timingCurve(0.12, 0.82, 0.22, 1, duration: duration)) {
-                progress = 1
-            }
-            withAnimation(.easeOut(duration: 0.72)) { ringProgress = 1 }
+        withAnimation(reduceMotion
+            ? .easeOut(duration: duration)
+            : .timingCurve(0.12, 0.82, 0.22, 1, duration: duration)
+        ) {
+            reveal = 1
         }
 
         do { try await Task.sleep(nanoseconds: UInt64(duration * 1_000_000_000)) }
