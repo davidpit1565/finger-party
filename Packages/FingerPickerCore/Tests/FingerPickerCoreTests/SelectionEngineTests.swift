@@ -6,14 +6,17 @@ final class SelectionEngineTests: XCTestCase {
         for mood in ColorMood.allCases {
             let colors = Palette.colors(for: mood)
             XCTAssertEqual(colors.count, 10, "\(mood) palette should provide ten distinct slots")
+            let inkLuminance = Palette.luminance(Palette.RGB(r: 0.04, g: 0.04, b: 0.07))
             for color in colors {
                 let luminance = Palette.luminance(color)
-                let darkContrast = (luminance + 0.05) / (0.04 * 0.04 * 0.04 + 0.05)
-                let whiteContrast = 1.05 / (luminance + 0.05)
-                XCTAssertGreaterThanOrEqual(max(darkContrast, whiteContrast), 4.5,
-                    "\(mood) palette contains a color without readable winner text")
+                let chosenContrast = Palette.prefersDarkText(on: color)
+                    ? (luminance + 0.05) / (inkLuminance + 0.05)
+                    : 1.05 / (luminance + 0.05)
+                XCTAssertGreaterThanOrEqual(chosenContrast, 4.5,
+                    "\(mood) palette chooses winner text below WCAG AA contrast")
             }
         }
+    }        }
     }
 
     func testRejectsZeroAndOneParticipant() {
