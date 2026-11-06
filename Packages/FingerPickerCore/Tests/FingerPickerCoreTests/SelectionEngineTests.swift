@@ -2,6 +2,20 @@ import XCTest
 @testable import FingerPickerCore
 
 final class SelectionEngineTests: XCTestCase {
+    func testEveryColorMoodHasTenColorsAndReadableWinnerInk() {
+        for mood in ColorMood.allCases {
+            let colors = Palette.colors(for: mood)
+            XCTAssertEqual(colors.count, 10, "\(mood) palette should provide ten distinct slots")
+            for color in colors {
+                let luminance = Palette.luminance(color)
+                let darkContrast = (luminance + 0.05) / (0.04 * 0.04 * 0.04 + 0.05)
+                let whiteContrast = 1.05 / (luminance + 0.05)
+                XCTAssertGreaterThanOrEqual(max(darkContrast, whiteContrast), 4.5,
+                    "\(mood) palette contains a color without readable winner text")
+            }
+        }
+    }
+
     func testRejectsZeroAndOneParticipant() {
         var p = ScriptedPicker([0])
         XCTAssertThrowsError(try SelectionEngine.selectWinner(from: [], using: &p)) {
