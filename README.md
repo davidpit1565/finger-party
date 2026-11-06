@@ -24,8 +24,8 @@ An iPhone-first, offline-capable, single-purpose multi-touch finger picker. The 
 - [Apple, privacy, age ratings and App Store research](RESEARCH/02-apple-platform-and-privacy.md)
 - [Expanded competitor map and naming risk](RESEARCH/03-expanded-competitor-map.md)
 
-## Status
-Product direction and MVP scope documented. The repository still needs an Xcode app implementation. The next phase is implementation after the owner approves the product specification and confirms the local development environment and signing approach.
+## Current implementation status
+The native SwiftUI/UIKit iPhone app is implemented on the working branch `claude/finger-picker-mvp`. It includes simultaneous multi-touch capture, fair random selection, animated winner reveal, sound and haptics settings, three locally persisted color moods (Vivid, Cool, Warm), replay safety, accessibility support, and simulator screenshot tests including a 10-participant visual stress scenario. CI and visual review are still required before calling the app release-ready.
 
 ## Important
 The repository name finger-party is not the final App Store name. A close product name, Finger's Party, already exists on the App Store, so naming and trademark clearance are required before public branding.
