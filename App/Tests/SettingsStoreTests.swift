@@ -1,4 +1,5 @@
 import XCTest
+import FingerPickerCore
 @testable import FingerPicker
 
 final class SettingsStoreTests: XCTestCase {
