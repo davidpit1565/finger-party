@@ -140,6 +140,7 @@ final class FingerPickerUITests: FingerPickerUITestCase {
         XCTAssertTrue(element("soundToggle").waitForExistence(timeout: 3))
         XCTAssertFalse(element("soundToggle").label.isEmpty)
         XCTAssertFalse(element("hapticsToggle").label.isEmpty)
+        XCTAssertTrue(element("colorMoodPicker").exists)
         XCTAssertFalse(app.buttons["settingsDone"].label.isEmpty)
     }
 }
@@ -181,7 +182,7 @@ final class ScreenshotTests: FingerPickerUITestCase {
         XCTAssertTrue(app.buttons["playAgainButton"].waitForExistence(timeout: 3))
         // Give the colour takeover animation a moment to reach its final frame.
         Thread.sleep(forTimeInterval: 1.5)
-        capture("03-winner")
+        capture("04-winner")
     }
 
     func test05Settings() {
