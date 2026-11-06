@@ -1,5 +1,7 @@
 # UX / Visual / Accessibility Audit — Finger Picker (single screen)
 
+> **Implementation update (2026-11-06):** This audit predates the latest polish commits. The app now uses a dark-ink winner label, a dual-outline winner seal, a reordered default palette, three curated color moods, and a ten-finger simulator scenario. Findings below remain historical until each is re-verified against the latest simulator build and physical iPhone.
+
 Scope: `PRODUCT/PRODUCT-SPEC.md` (§3, §7, §8), `DESIGN/DESIGN-NOTES.md`, `PlayScreen.swift`, `SettingsSheet.swift`, `Animation/*`, `TouchSessionModel.swift`, `HapticsService.swift`, `SoundService.swift`, `Palette.swift`, `SelectorRoute.swift`.
 Method: static code review plus computed numbers (WCAG contrast and colour-vision-deficiency simulation, Python, Machado 2009 matrices, CIELAB ΔE76). No device or simulator run: the CI xcresult was not rendered (the last CI runs on the branch were failing and the bundle is not viewable here). Everything about "feel" is inferred from code and needs a device pass. Finger-size numbers are estimates.
 Read-only: no source edited.
