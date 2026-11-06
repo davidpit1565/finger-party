@@ -61,7 +61,7 @@ struct PlayScreen: View {
                 if let round = model.round, isRevealOrResult {
                     WinnerTakeoverView(origin: point(round.winnerPoint, in: geo.size),
                                        color: Theme.color(round.winnerColorIndex, mood: model.settings.colorMood),
-                                       ink: Theme.overlayText(onColorIndex: round.winnerColorIndex),
+                                       ink: Theme.overlayText(onColorIndex: round.winnerColorIndex, mood: model.settings.colorMood),
                                        started: model.selectorFinished,
                                        reduceMotion: reduceMotion) {
                         model.revealCompleted()
