@@ -45,8 +45,8 @@ jobs:
         run: |
           mkdir -p build/screenshots
           if [ -d build/TestResults.xcresult ]; then
-            xcrun xcresulttool export attachments \\
-              --path build/TestResults.xcresult \\
+            xcrun xcresulttool export attachments \
+              --path build/TestResults.xcresult \
               --output-path build/screenshots
             echo "---- exported PNG screenshots ----"
             find build/screenshots -type f -name '*.png' -print
