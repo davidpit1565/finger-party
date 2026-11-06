@@ -196,7 +196,7 @@ struct PlayScreen: View {
     }
 
     private func resultContent(_ round: Round) -> some View {
-        let ink = Theme.overlayText(onColorIndex: round.winnerColorIndex)
+        let ink = Color.white
         let pos = model.winnerPosition
         let detail = pos.map { "Finger \($0.index + 1) of \($0.total)" } ?? ""
         return VStack(spacing: 18) {
@@ -235,8 +235,8 @@ struct PlayScreen: View {
                 .foregroundStyle(ink)
                 .padding(.horizontal, 27)
                 .frame(minHeight: 54)
-                .background(ink.opacity(0.09), in: Capsule())
-                .overlay(Capsule().stroke(ink.opacity(0.65), lineWidth: 1.5))
+                .background(.white.opacity(0.10), in: Capsule())
+                .overlay(Capsule().stroke(.white.opacity(0.72), lineWidth: 1.2))
                 .contentShape(Capsule())
             }
             .disabled(!model.canReplay)
