@@ -1,9 +1,14 @@
 name: CI
 on:
   push:
-    branches: [main, "claude/**"]
+    branches: [main]
   pull_request:
   workflow_dispatch:
+
+# Keep one active CI run per branch/PR so rapid polish commits do not build up a queue.
+concurrency:
+  group: finger-party-ci-${{ github.event.pull_request.head.ref || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   core-tests:
