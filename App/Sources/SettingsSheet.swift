@@ -1,4 +1,5 @@
 import SwiftUI
+import FingerPickerCore
 
 enum PrivacyPolicy {
     static let url = URL(string: "https://davidpit1565.github.io/finger-party/privacy.html")!
