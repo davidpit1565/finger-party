@@ -82,6 +82,26 @@ struct SettingsSheet: View {
                         isOn: $settings.hapticsEnabled,
                         identifier: "hapticsToggle"
                     )
+                    Rectangle().fill(.white.opacity(0.08)).frame(height: 1).padding(.leading, 68)
+                    VStack(alignment: .leading, spacing: 10) {
+                        HStack(spacing: 10) {
+                            Image(systemName: "paintpalette.fill")
+                                .foregroundStyle(Theme.lime)
+                            Text("Color mood")
+                                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                                .foregroundStyle(.white)
+                            Spacer()
+                        }
+                        Picker("Color mood", selection: $settings.colorMood) {
+                            ForEach(ColorMood.allCases, id: \.self) { mood in
+                                Text(mood.rawValue).tag(mood)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                        .accessibilityIdentifier("colorMoodPicker")
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 13)
                 }
                 .padding(.horizontal, 16)
                 .background(.white.opacity(0.045), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
@@ -110,7 +130,7 @@ struct SettingsSheet: View {
                 .padding(.bottom, 28)
             }
         }
-        .presentationDetents([.height(360)])
+        .presentationDetents([.height(430)])
         .presentationDragIndicator(.hidden)
         .presentationCornerRadius(30)
         .preferredColorScheme(.dark)
