@@ -11,6 +11,7 @@ final class TouchCaptureUIView: UIView {
     private static var nextRawID = 1000
     private var activeTouches: [ObjectIdentifier: TouchID] = [:]
     private var lastBoundsSize: CGSize = .zero
+    private var invalidationScheduled = false
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -47,7 +48,13 @@ final class TouchCaptureUIView: UIView {
     /// Forget every tracked touch and tell the model to drop the round.
     private func invalidate() {
         activeTouches.removeAll()
-        model?.interrupt()
+        guard !invalidationScheduled else { return }
+        invalidationScheduled = true
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            self.invalidationScheduled = false
+            self.model?.interrupt()
+        }
     }
 
     // MARK: Touches
@@ -61,7 +68,9 @@ final class TouchCaptureUIView: UIView {
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         for touch in touches where touch.type == .direct {
             let key = ObjectIdentifier(touch)
-            guard activeTouches[key] == nil else { continue }
+            if let staleID = activeTouches.removeValue(forKey: key) {
+                model?.touchCancelled(staleID)
+            }
             let id = TouchID(Self.nextRawID)
             Self.nextRawID += 1
             activeTouches[key] = id
