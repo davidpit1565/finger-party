@@ -46,7 +46,7 @@ struct PlayScreen: View {
                 TouchCaptureView(model: model)
 
                 ForEach(shownParticipants) { p in
-                    RingMarkerView(color: Theme.color(p.colorIndex),
+                    RingMarkerView(color: Theme.color(p.colorIndex, mood: model.settings.colorMood),
                                    emphasis: emphasis(for: p),
                                    reduceMotion: reduceMotion)
                         .frame(width: 144, height: 144)
@@ -60,7 +60,7 @@ struct PlayScreen: View {
 
                 if let round = model.round, isRevealOrResult {
                     WinnerTakeoverView(origin: point(round.winnerPoint, in: geo.size),
-                                       color: Theme.color(round.winnerColorIndex),
+                                       color: Theme.color(round.winnerColorIndex, mood: model.settings.colorMood),
                                        ink: Theme.overlayText(onColorIndex: round.winnerColorIndex),
                                        started: model.selectorFinished,
                                        reduceMotion: reduceMotion) {
