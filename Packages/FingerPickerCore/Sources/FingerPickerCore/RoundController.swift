@@ -68,7 +68,7 @@ public struct RoundController {
         switch phase {
         case .idle, .collecting, .settling, .countdown:
             guard !candidates.contains(where: { $0.id == id }) else { return } // duplicate begin
-            let used = Set(candidates.map(\.colorIndex))
+            let used = candidates.map(\.colorIndex)
             candidates.append(Participant(id: id, point: point, colorIndex: Palette.nextFreeIndex(used: used)))
             candidates.sort { $0.id < $1.id }
             candidatesChanged(now: now)
