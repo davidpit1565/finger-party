@@ -5,6 +5,7 @@ import FingerPickerCore
 struct PlayScreen: View {
     let model: TouchSessionModel
     @State private var showSettings = false
+    @State private var flashOpacity: Double = 0
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
@@ -13,11 +14,25 @@ struct PlayScreen: View {
             overlayLayer
         }
         .background(Theme.background.ignoresSafeArea())
+        .overlay {
+            Rectangle()
+                .fill(.white.opacity(flashOpacity))
+                .ignoresSafeArea()
+                .allowsHitTesting(false)
+                .blendMode(.screen)
+        }
         .sheet(isPresented: $showSettings) { SettingsSheet(settings: model.settings) }
         .persistentSystemOverlays(.hidden)
         .defersSystemGestures(on: .all)
         .onChange(of: model.phase) { _, phase in
             UIApplication.shared.isIdleTimerDisabled = (phase != .idle)
+            switch phase {
+            case .countdown, .revealing:
+                flashOpacity = 0.24
+                withAnimation(.easeOut(duration: 0.42)) { flashOpacity = 0 }
+            default:
+                break
+            }
         }
         .onDisappear { UIApplication.shared.isIdleTimerDisabled = false }
     }
