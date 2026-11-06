@@ -136,7 +136,7 @@ struct IdleWelcome: View {
                         .foregroundStyle(.white.opacity(0.72))
                         .padding(.top, 2)
                 }
-                .position(x: center.x, y: center.y + 112 + 21 + 92)
+                .position(x: center.x, y: center.y + 119 + 30 + 100)
             }
             .frame(width: geo.size.width, height: geo.size.height)
         }
