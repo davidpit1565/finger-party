@@ -29,6 +29,7 @@ final class TouchSessionModel {
     @ObservationIgnored private let reduceMotion: () -> Bool
     @ObservationIgnored private var selectorTask: Task<Void, Never>?
     @ObservationIgnored private var timer: Timer?
+    @ObservationIgnored private var announceTask: Task<Void, Never>?
     @ObservationIgnored private var observers: [NSObjectProtocol] = []
 
     init(controller: RoundController = RoundController(),
@@ -149,6 +150,8 @@ final class TouchSessionModel {
     private func resetPresentation() {
         selectorTask?.cancel()
         selectorTask = nil
+        announceTask?.cancel()
+        announceTask = nil
         selectorID = nil
         selectorFinished = false
     }
@@ -216,9 +219,15 @@ final class TouchSessionModel {
     // MARK: Accessibility
 
     private func announceCount() {
-        let n = candidates.count
-        guard n > 0 else { return }
-        announce(n == 1 ? "1 finger detected" : "\(n) fingers detected")
+        announceTask?.cancel()
+        guard !candidates.isEmpty else { return }
+        announceTask = Task { [weak self] in
+            do { try await Task.sleep(nanoseconds: 400_000_000) } catch { return }
+            guard let self, !Task.isCancelled, self.isCollectingPhase else { return }
+            let count = self.candidates.count
+            guard count > 0 else { return }
+            self.announce(count == 1 ? "1 finger detected" : "\(count) fingers detected")
+        }
     }
 
     private func announce(_ text: String) {
