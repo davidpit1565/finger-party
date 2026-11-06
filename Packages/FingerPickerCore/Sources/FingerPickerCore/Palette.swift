@@ -1,5 +1,11 @@
 import Foundation
 
+public enum ColorMood: String, CaseIterable, Sendable {
+    case vivid = "Vivid"
+    case cool = "Cool"
+    case warm = "Warm"
+}
+
 /// Controlled palette of vivid, mutually distinguishable hues (sRGB 0...1).
 /// Order matters: colors are handed out lowest-free-index first, so the first
 /// few fingers always get the most distinct hues.
@@ -18,6 +24,30 @@ public enum Palette {
         RGB(r: 0.40, g: 0.50, b: 1.00), // indigo blue
         RGB(r: 0.85, g: 1.00, b: 0.30), // chartreuse
     ]
+
+    private static let coolColors: [RGB] = [
+        RGB(r: 0.18, g: 0.78, b: 1.00), RGB(r: 0.48, g: 0.42, b: 1.00),
+        RGB(r: 0.15, g: 0.88, b: 0.78), RGB(r: 0.34, g: 0.64, b: 0.98),
+        RGB(r: 0.68, g: 0.48, b: 0.96), RGB(r: 0.20, g: 0.72, b: 0.82),
+        RGB(r: 0.50, g: 0.86, b: 0.58), RGB(r: 0.36, g: 0.52, b: 0.92),
+        RGB(r: 0.72, g: 0.66, b: 1.00), RGB(r: 0.30, g: 0.88, b: 0.96)
+    ]
+
+    private static let warmColors: [RGB] = [
+        RGB(r: 1.00, g: 0.30, b: 0.38), RGB(r: 1.00, g: 0.56, b: 0.18),
+        RGB(r: 1.00, g: 0.78, b: 0.20), RGB(r: 0.96, g: 0.36, b: 0.58),
+        RGB(r: 0.84, g: 0.42, b: 0.30), RGB(r: 0.98, g: 0.62, b: 0.38),
+        RGB(r: 0.82, g: 0.72, b: 0.28), RGB(r: 0.92, g: 0.42, b: 0.72),
+        RGB(r: 0.72, g: 0.48, b: 0.28), RGB(r: 1.00, g: 0.68, b: 0.52)
+    ]
+
+    public static func colors(for mood: ColorMood) -> [RGB] {
+        switch mood {
+        case .vivid: return colors
+        case .cool: return coolColors
+        case .warm: return warmColors
+        }
+    }
 
     public static var count: Int { colors.count }
 
