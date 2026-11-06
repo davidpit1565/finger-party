@@ -132,7 +132,7 @@ struct PlayScreen: View {
         Button { showSettings = true } label: {
             Image(systemName: "slider.horizontal.3")
                 .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(.white.opacity(0.86))
+                .foregroundStyle(.white.opacity(0.92))
                 .frame(width: 44, height: 44)
                 .background(.white.opacity(0.075), in: Circle())
                 .overlay(Circle().stroke(.white.opacity(0.12), lineWidth: 1))
@@ -196,7 +196,7 @@ struct PlayScreen: View {
     }
 
     private func resultContent(_ round: Round) -> some View {
-        let ink = Color.white
+        let ink = Theme.overlayText(onColorIndex: round.winnerColorIndex)
         let pos = model.winnerPosition
         let detail = pos.map { "Finger \($0.index + 1) of \($0.total)" } ?? ""
         return VStack(spacing: 18) {
@@ -252,7 +252,8 @@ struct PlayScreen: View {
                 .accessibilityHidden(true)
         }
         .padding(.bottom, 28)
-        .transition(.move(edge: .bottom).combined(with: .opacity))
+        .transition(.opacity.combined(with: .offset(y: 12)))
+        .animation(reduceMotion ? .easeOut(duration: 0.18) : .spring(response: 0.38, dampingFraction: 0.82), value: model.canReplay)
     }
 }
 
