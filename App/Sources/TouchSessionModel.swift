@@ -258,15 +258,17 @@ extension TouchSessionModel {
         let args = ProcessInfo.processInfo.arguments
         guard let i = args.firstIndex(of: "-ui-scenario"), i + 1 < args.count else { return nil }
         let value = args[i + 1]
-        return (value == "collecting" || value == "winner") ? value : nil
+        return ["collecting", "winner", "crowd"].contains(value) ? value : nil
     }
 
     fileprivate static func makeScenario(_ scenario: String, settings: SettingsStore,
                                          haptics: any HapticsProviding, sound: any SoundProviding,
                                          reduce: @escaping () -> Bool) -> TouchSessionModel {
-        let points = [(0.30, 0.30), (0.72, 0.36), (0.45, 0.62), (0.75, 0.78)]
+        let standardPoints = [(0.30, 0.30), (0.72, 0.36), (0.45, 0.62), (0.75, 0.78)]
+        let crowdPoints = [(0.22, 0.16), (0.78, 0.16), (0.22, 0.32), (0.78, 0.32), (0.22, 0.48), (0.78, 0.48), (0.22, 0.64), (0.78, 0.64), (0.22, 0.80), (0.78, 0.80)]
+        let points = scenario == "crowd" ? crowdPoints : standardPoints
         let isWinner = scenario == "winner"
-        // "collecting": timers so long the round never advances. "winner": instant lock, fixed winner.
+        // "collecting"/"crowd": timers so long the round never advances. "winner": instant lock, fixed winner.
         let timing = isWinner ? RoundTiming(settleDuration: 0, countdownDuration: 0)
                               : RoundTiming(settleDuration: 1e9, countdownDuration: 1e9)
         let model = TouchSessionModel(controller: RoundController(timing: timing, picker: FixedIndexPicker(index: 2)),
