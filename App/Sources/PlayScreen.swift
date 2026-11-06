@@ -50,6 +50,7 @@ struct PlayScreen: View {
                                    emphasis: emphasis(for: p),
                                    reduceMotion: reduceMotion)
                         .frame(width: 144, height: 144)
+                        .scaleEffect(shownParticipants.count > 8 ? 0.76 : (shownParticipants.count > 5 ? 0.88 : 1))
                         .position(point(p.point, in: geo.size))
                         .transition(.scale(scale: 0.55).combined(with: .opacity))
                         .allowsHitTesting(false)
