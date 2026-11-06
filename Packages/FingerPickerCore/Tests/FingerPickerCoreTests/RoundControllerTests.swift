@@ -157,6 +157,14 @@ final class RoundControllerTests: XCTestCase {
         XCTAssertEqual(Set(c.candidates.map(\.colorIndex)).count, 3)
     }
 
+    func testColorReuseStaysBalancedBeyondTenFingers() {
+        var c = make()
+        for i in 1...20 { c.touchBegan(id(i), at: pt, now: 0) }
+        let counts = Dictionary(grouping: c.candidates, by: \.colorIndex).mapValues(\.count)
+        XCTAssertEqual(counts.count, 10)
+        XCTAssertLessThanOrEqual((counts.values.max() ?? 0) - (counts.values.min() ?? 0), 1)
+    }
+
     func testManyFingersBeyondPaletteDoesNotCrash() {
         var c = make()
         for i in 1...14 { c.touchBegan(id(i), at: pt, now: 0) }
