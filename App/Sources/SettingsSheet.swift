@@ -6,13 +6,13 @@ enum PrivacyPolicy {
 
 struct SettingsSheet: View {
     @Bindable var settings: SettingsStore
-    @Environment(\\.dismiss) private var dismiss
+    @Environment(\.dismiss) private var dismiss
 
     private var versionText: String {
         let info = Bundle.main.infoDictionary
         let version = info?["CFBundleShortVersionString"] as? String ?? "?"
         let build = info?["CFBundleVersion"] as? String ?? "?"
-        return "\\(version) (\\(build))"
+        return "\(version) (\(build))"
     }
 
     var body: some View {
@@ -101,7 +101,7 @@ struct SettingsSheet: View {
                         .foregroundStyle(.white.opacity(0.65))
                     }
                     Spacer()
-                    Text("VERSION  \\(versionText)")
+                    Text("VERSION  \(versionText)")
                         .font(.system(size: 10, weight: .bold, design: .rounded))
                         .tracking(1)
                         .foregroundStyle(.white.opacity(0.38))
