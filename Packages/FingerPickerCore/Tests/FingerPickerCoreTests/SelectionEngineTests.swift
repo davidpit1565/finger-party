@@ -124,7 +124,7 @@ final class PaletteTests: XCTestCase {
         XCTAssertEqual(Palette.nextFreeIndex(used: []), 0)
         XCTAssertEqual(Palette.nextFreeIndex(used: [0, 1]), 2)
         XCTAssertEqual(Palette.nextFreeIndex(used: [1]), 0)
-        let all = Set(0..<Palette.count)
+        let all = Array(0..<Palette.count)
         XCTAssertTrue((0..<Palette.count).contains(Palette.nextFreeIndex(used: all)))
     }
     func testPaletteColorsAreDistinctAndInRange() {
