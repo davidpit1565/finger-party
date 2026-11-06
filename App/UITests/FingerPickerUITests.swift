@@ -61,6 +61,7 @@ final class FingerPickerUITests: FingerPickerUITestCase {
 
         XCTAssertTrue(element("soundToggle").waitForExistence(timeout: 3))
         XCTAssertTrue(element("hapticsToggle").exists)
+        XCTAssertTrue(element("colorMoodPicker").exists)
 
         // Persisted state survives between launches on a simulator, so assert "flips", not an absolute value.
         let soundBefore = toggleValue("soundToggle")
