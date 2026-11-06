@@ -9,8 +9,8 @@ enum Theme {
     static let violet = Color(red: 0.58, green: 0.36, blue: 1.0)
     static let lime = Color(red: 0.76, green: 1.0, blue: 0.30)
 
-    static func color(_ colorIndex: Int) -> Color {
-        let rgb = paletteRGB(colorIndex)
+    static func color(_ colorIndex: Int, mood: ColorMood = .vivid) -> Color {
+        let rgb = paletteRGB(colorIndex, mood: mood)
         return Color(.sRGB, red: rgb.r, green: rgb.g, blue: rgb.b, opacity: 1)
     }
 
@@ -21,9 +21,10 @@ enum Theme {
     static let ink = Color(.sRGB, red: 0.04, green: 0.04, blue: 0.07, opacity: 0.96)
     static var secondaryText: Color { Color.white.opacity(0.66) }
 
-    private static func paletteRGB(_ index: Int) -> Palette.RGB {
-        let n = Palette.colors.count
+    private static func paletteRGB(_ index: Int, mood: ColorMood) -> Palette.RGB {
+        let colors = Palette.colors(for: mood)
+        let n = colors.count
         let i = ((index % n) + n) % n
-        return Palette.colors[i]
+        return colors[i]
     }
 }
