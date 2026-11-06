@@ -16,7 +16,6 @@ final class SelectionEngineTests: XCTestCase {
                     "\(mood) palette chooses winner text below WCAG AA contrast")
             }
         }
-    }        }
     }
 
     func testRejectsZeroAndOneParticipant() {
