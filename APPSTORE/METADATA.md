@@ -95,7 +95,7 @@ Accuracy checklist: every sentence maps to shipped MVP behavior (PRODUCT-SPEC se
 
 ### What's New / Beta App Description note (188/4000)
 ```text
-First TestFlight build. Core finger picker: place two or more fingers, a short countdown, one random winner, and the winner's color fills the screen. Sound and Haptics toggles in Settings.
+First TestFlight build. Core finger picker: place two or more fingers, a short countdown, one random winner, and the winner's color fills the screen. Sound and Haptics toggles and a finger color mood choice in Settings.
 ```
 
 ### What to Test (835/4000)
@@ -119,7 +119,7 @@ Internal testing (up to 100 internal testers, App Store Connect users) does not 
 ```text
 Finger Picker is a single-screen utility. Two or more people place fingers on the screen; after a short countdown the app picks one touch at random and fills the screen with the winner's color.
 No account or sign-in is needed, so no demo credentials are provided.
-The app is fully offline: no network calls, no analytics, no ads, no third-party SDKs, no in-app purchases. It stores only two local on-device toggles (Sound, Haptics). Touch positions exist only in memory during a round and are never saved or sent.
+The app is fully offline: no network calls, no analytics, no ads, no third-party SDKs, no in-app purchases. It stores only three local on-device preferences (Sound, Haptics, finger color mood). Touch positions exist only in memory during a round and are never saved or sent.
 It requests no permissions (no camera, microphone, location, contacts, photos).
 To test: launch the app, place two or more fingers on the screen at the same time (a physical device is best; a single touch never starts a round), keep still for the countdown, and observe the winner reveal. Lift all fingers and tap Play again. Settings (gear icon) has Sound, Haptics, Privacy Policy link and version.
 The app is not directed to children and is not in the Kids category. Contact for review: to be provided by the account holder in App Store Connect.
