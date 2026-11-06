@@ -14,6 +14,7 @@ final class SettingsStoreTests: XCTestCase {
         let s = SettingsStore(defaults: d)
         XCTAssertFalse(s.soundEnabled)
         XCTAssertTrue(s.hapticsEnabled)
+        XCTAssertEqual(s.colorMood, .vivid)
     }
 
     func testChangesPersistAcrossNewInstance() {
@@ -21,9 +22,11 @@ final class SettingsStoreTests: XCTestCase {
         let a = SettingsStore(defaults: d)
         a.soundEnabled = true
         a.hapticsEnabled = false
+        a.colorMood = .cool
         let b = SettingsStore(defaults: d)
         XCTAssertTrue(b.soundEnabled)
         XCTAssertFalse(b.hapticsEnabled)
+        XCTAssertEqual(b.colorMood, .cool)
     }
 
     func testPersistedValuesLandUnderPublicKeys() {
@@ -33,6 +36,8 @@ final class SettingsStoreTests: XCTestCase {
         XCTAssertEqual(d.object(forKey: SettingsStore.soundKey) as? Bool, true)
         s.hapticsEnabled = false
         XCTAssertEqual(d.object(forKey: SettingsStore.hapticsKey) as? Bool, false)
+        s.colorMood = .warm
+        XCTAssertEqual(d.string(forKey: SettingsStore.colorMoodKey), ColorMood.warm.rawValue)
     }
 
     func testExplicitFalseForHapticsIsNotReplacedByDefault() {
