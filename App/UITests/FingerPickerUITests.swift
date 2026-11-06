@@ -84,6 +84,14 @@ final class FingerPickerUITests: FingerPickerUITestCase {
         XCTAssertFalse(element("soundToggle").exists)
     }
 
+    func testTenFingerCrowdScenarioDisplaysAllParticipants() {
+        launch(scenario: "crowd")
+        let count = element("fingerCount")
+        XCTAssertTrue(count.waitForExistence(timeout: 5))
+        XCTAssertTrue(count.label.contains("10"), "seeded 10 fingers, label was '\(count.label)'")
+        XCTAssertFalse(element("idleHint").exists)
+    }
+
     func testWinnerScenarioShowsWinnerAndEnabledPlayAgain() {
         launch(scenario: "winner")
         XCTAssertTrue(element("winnerLabel").waitForExistence(timeout: 5))
@@ -159,7 +167,14 @@ final class ScreenshotTests: FingerPickerUITestCase {
         capture("02-fingers")
     }
 
-    func test03Winner() {
+    func test03Crowd() {
+        launch(scenario: "crowd")
+        XCTAssertTrue(element("fingerCount").waitForExistence(timeout: 5))
+        XCTAssertTrue(element("fingerCount").label.contains("10"))
+        capture("03-crowd-10-fingers")
+    }
+
+    func test04Winner() {
         launch(scenario: "winner")
         XCTAssertTrue(element("winnerLabel").waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["playAgainButton"].waitForExistence(timeout: 3))
@@ -168,7 +183,7 @@ final class ScreenshotTests: FingerPickerUITestCase {
         capture("03-winner")
     }
 
-    func test04Settings() {
+    func test05Settings() {
         // Idle launch: the gear is only shown in idle/collecting, and the "collecting" scenario is
         // actually in the settling phase (4 fingers), where the gear is hidden.
         launch()
@@ -177,6 +192,6 @@ final class ScreenshotTests: FingerPickerUITestCase {
         gear.tap()
         XCTAssertTrue(element("soundToggle").waitForExistence(timeout: 3))
         Thread.sleep(forTimeInterval: 0.6)   // sheet presentation animation
-        capture("04-settings")
+        capture("05-settings")
     }
 }
