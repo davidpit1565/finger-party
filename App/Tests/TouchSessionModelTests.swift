@@ -285,7 +285,7 @@ final class TouchSessionModelTests: XCTestCase {
 
     // MARK: Orientation / bounds change -> interrupt (real UIView, best effort without a scene)
 
-    func testBoundsChangeInterruptsRound() {
+    func testBoundsChangeInterruptsRound() async {
         let h = Harness.make(testCase: self)
         let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 400, height: 800))
         let view = TouchCaptureUIView(frame: window.bounds)
@@ -298,11 +298,14 @@ final class TouchSessionModelTests: XCTestCase {
         view.frame = CGRect(x: 0, y: 0, width: 800, height: 400)   // "rotation"
         view.setNeedsLayout()
         view.layoutIfNeeded()
+        // The reset is deliberately deferred to the next main-queue turn (never mutate state inside layout).
+        let reset = await waitUntil { h.model.phase == .idle }
+        XCTAssertTrue(reset)
         XCTAssertEqual(h.model.phase, .idle)
         XCTAssertTrue(h.model.candidates.isEmpty)
     }
 
-    func testRemovingTouchSurfaceFromWindowInterruptsRound() {
+    func testRemovingTouchSurfaceFromWindowInterruptsRound() async {
         let h = Harness.make(testCase: self)
         let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 400, height: 800))
         let view = TouchCaptureUIView(frame: window.bounds)
@@ -310,6 +313,8 @@ final class TouchSessionModelTests: XCTestCase {
         window.addSubview(view)
         h.down(1); h.down(2)
         view.removeFromSuperview()
+        let reset = await waitUntil { h.model.phase == .idle }   // reset is deferred one main-queue turn
+        XCTAssertTrue(reset)
         XCTAssertEqual(h.model.phase, .idle)
     }
 
