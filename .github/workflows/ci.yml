@@ -1,0 +1,75 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# Keep one active CI run per branch/PR so rapid polish commits do not build up a queue.
+concurrency:
+  group: finger-party-ci-${{ github.event.pull_request.head.ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  core-tests:
+    name: Core logic tests (SwiftPM)
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - run: swift test --package-path Packages/FingerPickerCore
+
+  app:
+    name: Build + unit/UI tests (iOS Simulator)
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate project
+        run: xcodegen generate
+      - name: Pick simulator
+        id: sim
+        run: |
+          UDID=$(xcrun simctl list devices available -j | python3 -c "import json,sys; d=json.load(sys.stdin)['devices']; print(next(x['udid'] for k,v in d.items() if 'iOS' in k for x in v if 'iPhone' in x['name'] and x['isAvailable']))")
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+      - name: Build & test
+        run: |
+          mkdir -p build
+          set +e
+          xcodebuild test -project FingerPicker.xcodeproj -scheme FingerPicker \
+            -destination "id=${{ steps.sim.outputs.udid }}" \
+            -resultBundlePath build/TestResults.xcresult \
+            CODE_SIGNING_ALLOWED=NO > build/xcodebuild.log 2>&1
+          status=$?
+          echo "---- errors ----"; grep -E "error:" build/xcodebuild.log | cut -c1-600 | head -40
+          echo "---- test cases ----"; grep -E "^Test Case .* (passed|failed)" build/xcodebuild.log | cut -c1-200
+          echo "---- summary ----"; grep -E "Executed [0-9]+ tests" build/xcodebuild.log | tail -4
+          exit $status
+      - name: Export simulator screenshots
+        if: always()
+        run: |
+          mkdir -p build/screenshots
+          if [ -d build/TestResults.xcresult ]; then
+            xcrun xcresulttool export attachments \
+              --path build/TestResults.xcresult \
+              --output-path build/screenshots
+            echo "---- exported PNG screenshots ----"
+            find build/screenshots -type f -name '*.png' -print
+          else
+            echo "No xcresult bundle was produced; screenshots unavailable."
+          fi
+      - name: Upload simulator screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: simulator-screenshots
+          path: build/screenshots
+          if-no-files-found: warn
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            build/xcodebuild.log
+            build/TestResults.xcresult

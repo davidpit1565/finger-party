@@ -1,0 +1,74 @@
+# XcodeGen spec. Generate the project with:  xcodegen generate
+# The .xcodeproj is intentionally not committed (see .gitignore).
+name: FingerPicker
+options:
+  bundleIdPrefix: com.davidpit
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+  generateEmptyDirectories: true
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    DEVELOPMENT_TEAM: ""            # set locally / in CI via env; never commit a team that isn't yours
+    CODE_SIGN_STYLE: Automatic
+packages:
+  FingerPickerCore:
+    path: Packages/FingerPickerCore
+targets:
+  FingerPicker:
+    type: application
+    platform: iOS
+    sources:
+      - path: App/Sources
+      - path: App/Resources
+    dependencies:
+      - package: FingerPickerCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.davidpit.fingerpicker
+        PRODUCT_NAME: FingerPicker
+        TARGETED_DEVICE_FAMILY: "1"            # iPhone only (MVP)
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: "Finger Picker"
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.entertainment
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UIUserInterfaceStyle: Dark
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+        INFOPLIST_KEY_UIRequiresFullScreen: YES
+        INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
+        INFOPLIST_KEY_UIStatusBarHidden: YES
+        INFOPLIST_KEY_UIViewControllerBasedStatusBarAppearance: YES
+  FingerPickerTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources: [App/Tests]
+    dependencies:
+      - target: FingerPicker
+      - package: FingerPickerCore
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: com.davidpit.fingerpicker.tests
+  FingerPickerUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [App/UITests]
+    dependencies:
+      - target: FingerPicker
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: com.davidpit.fingerpicker.uitests
+schemes:
+  FingerPicker:
+    build:
+      targets: { FingerPicker: all }
+    test:
+      targets: [FingerPickerTests, FingerPickerUITests]
+    archive:
+      config: Release
