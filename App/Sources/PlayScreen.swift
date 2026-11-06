@@ -81,7 +81,7 @@ struct PlayScreen: View {
                 IdleWelcome(reduceMotion: reduceMotion)
                     .allowsHitTesting(false)
                     .accessibilityElement(children: .combine)
-                    .accessibilityLabel("Finger Party. Bring everyone in. Place two or more fingers to start.")
+                    .accessibilityLabel("Finger Picker. Bring everyone in. Place two or more fingers to start.")
                     .accessibilityHint("Touch the screen with two or more fingers to pick one at random")
                     .accessibilityIdentifier("idleHint")
             }
@@ -92,7 +92,7 @@ struct PlayScreen: View {
                         Image(systemName: "sparkle")
                             .font(.system(size: 15, weight: .black))
                             .foregroundStyle(Theme.cyan)
-                        Text("FINGER PARTY")
+                        Text("FINGER PICKER")
                             .font(.system(size: 12, weight: .black, design: .rounded))
                             .tracking(2.4)
                             .foregroundStyle(.white.opacity(0.78))

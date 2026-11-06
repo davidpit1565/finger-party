@@ -45,7 +45,8 @@ struct IdleWelcome: View {
 
     var body: some View {
         GeometryReader { geo in
-            let center = CGPoint(x: geo.size.width / 2, y: geo.size.height * 0.48)
+            // Ring cluster sits above the copy block so nodes never overlap the text.
+            let center = CGPoint(x: geo.size.width / 2, y: geo.size.height * 0.35)
             ZStack {
                 ForEach(0..<3, id: \.self) { index in
                     Circle()
@@ -87,7 +88,7 @@ struct IdleWelcome: View {
                         .foregroundStyle(.white.opacity(0.68))
                         .padding(.top, 2)
                 }
-                .position(x: center.x, y: center.y + 4)
+                .position(x: center.x, y: center.y + 112 + 21 + 92)
             }
             .frame(width: geo.size.width, height: geo.size.height)
         }
