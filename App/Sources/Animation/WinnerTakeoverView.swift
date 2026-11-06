@@ -6,6 +6,7 @@ import FingerPickerCore
 struct WinnerTakeoverView: View {
     let origin: CGPoint
     let color: Color
+    let ink: Color
     let started: Bool
     let reduceMotion: Bool
     let onCompleted: () -> Void
@@ -66,15 +67,16 @@ struct WinnerTakeoverView: View {
                 // A crisp winner seal appears at the touch point.
                 ZStack {
                     Circle().fill(color.opacity(0.13)).frame(width: 112, height: 112).blur(radius: 12)
-                    Circle().stroke(color.opacity(0.72), lineWidth: 1.4).frame(width: 82, height: 82)
-                    Circle().stroke(.white.opacity(0.92), lineWidth: 2.5).frame(width: 62, height: 62)
+                    Circle().stroke(.white.opacity(0.78), lineWidth: 2).frame(width: 86, height: 86)
+                    Circle().stroke(ink.opacity(0.96), lineWidth: 4).frame(width: 68, height: 68)
+                    Circle().stroke(ink.opacity(0.9), lineWidth: 2).frame(width: 58, height: 58)
                     Image(systemName: "crown.fill")
-                        .font(.system(size: 23, weight: .bold))
-                        .foregroundStyle(.white)
-                        .shadow(color: color.opacity(0.9), radius: 9)
+                        .font(.system(size: 22, weight: .bold))
+                        .foregroundStyle(ink)
+                        .shadow(color: .white.opacity(0.55), radius: 5)
                 }
                 .scaleEffect(0.72 + reveal * 0.28)
-                .opacity(reveal)
+                .opacity(min(1, reveal * 3))
                 .position(origin)
             }
             .frame(width: geo.size.width, height: geo.size.height)
