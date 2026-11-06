@@ -2,7 +2,7 @@ import Foundation
 import Observation
 import FingerPickerCore
 
-/// Local Sound / Haptics preferences. Nothing else is persisted.
+/// Local sound, haptics and color-mood preferences. No touch or player data is persisted.
 @Observable
 final class SettingsStore {
     static let soundKey = "soundEnabled"
