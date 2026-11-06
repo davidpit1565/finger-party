@@ -115,6 +115,10 @@ struct IdleWelcome: View {
                         .position(point)
                     }
                 }
+                // `.position` above uses the full-screen GeometryReader coordinates.
+                // Give this nested ZStack the same coordinate space before rotating it,
+                // otherwise SwiftUI sizes it to its children and shifts the orbit off-center.
+                .frame(width: geo.size.width, height: geo.size.height)
                 .rotationEffect(.degrees(orbit ? 360 : 0))
                 .shadow(color: Theme.cyan.opacity(0.08), radius: 24)
 
