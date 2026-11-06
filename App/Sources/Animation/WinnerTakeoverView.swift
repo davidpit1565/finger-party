@@ -1,6 +1,8 @@
 import SwiftUI
 import FingerPickerCore
 
+/// A restrained, cinematic winner reveal: the winner's color radiates outward,
+/// while the game canvas stays dark and the result remains readable.
 struct WinnerTakeoverView: View {
     let origin: CGPoint
     let color: Color
@@ -9,49 +11,67 @@ struct WinnerTakeoverView: View {
     let onCompleted: () -> Void
 
     @State private var progress: CGFloat = 0
-    @State private var haloOpacity: Double = 0
-    @State private var burst = false
+    @State private var ringProgress: CGFloat = 0
     @State private var completed = false
 
-    init(origin: CGPoint, color: Color, started: Bool, reduceMotion: Bool, onCompleted: @escaping () -> Void) {
-        self.origin = origin
-        self.color = color
-        self.started = started
-        self.reduceMotion = reduceMotion
-        self.onCompleted = onCompleted
-    }
-
-    private var duration: Double { reduceMotion ? 0.35 : 0.95 }
+    private var duration: Double { reduceMotion ? 0.28 : 1.12 }
 
     var body: some View {
         GeometryReader { geo in
             let radius = CGFloat(RevealGeometry.coverRadius(
                 origin: (x: Double(origin.x), y: Double(origin.y)),
                 width: Double(geo.size.width), height: Double(geo.size.height)
-            )) + 34
+            )) + 42
+
             ZStack {
+                // A soft color wave, not a solid full-screen color wipe.
                 Circle()
-                    .fill(color)
+                    .fill(RadialGradient(
+                        colors: [color.opacity(0.30), color.opacity(0.15), color.opacity(0.045), .clear],
+                        center: .center, startRadius: 8, endRadius: radius
+                    ))
                     .frame(width: radius * 2, height: radius * 2)
-                    .scaleEffect(reduceMotion ? 1 : max(progress, 0.0001))
-                    .opacity(reduceMotion ? Double(progress) : 1)
+                    .scaleEffect(reduceMotion ? 1 : max(progress, 0.001))
                     .position(origin)
 
+                // Expanding luminous shockwave.
+                Circle()
+                    .stroke(LinearGradient(colors: [.white.opacity(0.92), color.opacity(0.12)],
+                                           startPoint: .topLeading, endPoint: .bottomTrailing),
+                            lineWidth: 2.5)
+                    .frame(width: 72, height: 72)
+                    .scaleEffect(1 + ringProgress * 8)
+                    .opacity(1 - Double(ringProgress))
+                    .position(origin)
+
+                // Fine orbiting sparks add a sense of energy without visual clutter.
                 if !reduceMotion {
-                    Circle()
-                        .stroke(.white.opacity(burst ? 0 : 0.72), lineWidth: 3)
-                        .frame(width: 76, height: 76)
-                        .scaleEffect(burst ? 3.8 : 0.7)
-                        .position(origin)
+                    ForEach(0..<12, id: \.self) { index in
+                        let angle = Double(index) * (.pi * 2 / 12)
+                        let distance = CGFloat(28 + ringProgress * 112)
+                        Circle()
+                            .fill(index.isMultiple(of: 3) ? .white : color)
+                            .frame(width: index.isMultiple(of: 3) ? 4 : 2.5,
+                                   height: index.isMultiple(of: 3) ? 4 : 2.5)
+                            .shadow(color: color.opacity(0.9), radius: 7)
+                            .position(x: origin.x + CGFloat(cos(angle)) * distance,
+                                      y: origin.y + CGFloat(sin(angle)) * distance)
+                            .opacity(Double(1 - ringProgress) * 0.9)
+                    }
                 }
 
+                // Winner marker resolves in the center of the wave.
                 ZStack {
-                    Circle().fill(Theme.ink.opacity(0.16)).frame(width: 126, height: 126)
-                    Circle().stroke(Theme.ink.opacity(0.22), lineWidth: 15).frame(width: 82, height: 82)
-                    Circle().stroke(Theme.ink, lineWidth: 5).frame(width: 58, height: 58)
-                    Circle().fill(Theme.ink).frame(width: 11, height: 11)
+                    Circle().fill(color.opacity(0.16)).frame(width: 132, height: 132).blur(radius: 16)
+                    Circle().stroke(color.opacity(0.65), lineWidth: 1.5).frame(width: 94, height: 94)
+                    Circle().stroke(.white.opacity(0.9), lineWidth: 3).frame(width: 72, height: 72)
+                    Image(systemName: "crown.fill")
+                        .font(.system(size: 27, weight: .bold))
+                        .foregroundStyle(.white)
+                        .shadow(color: color, radius: 14)
                 }
-                .opacity(haloOpacity)
+                .scaleEffect(0.72 + progress * 0.28)
+                .opacity(progress)
                 .position(origin)
             }
             .frame(width: geo.size.width, height: geo.size.height)
@@ -65,22 +85,27 @@ struct WinnerTakeoverView: View {
     private func run() async {
         guard started else {
             progress = 0
-            haloOpacity = 0
-            burst = false
+            ringProgress = 0
             completed = false
             return
         }
         guard !completed else { return }
-        let d = duration
+
         if reduceMotion {
-            withAnimation(.easeInOut(duration: d)) { progress = 1 }
+            withAnimation(.easeOut(duration: duration)) {
+                progress = 1
+                ringProgress = 1
+            }
         } else {
-            withAnimation(.timingCurve(0.12, 0.82, 0.22, 1, duration: d)) { progress = 1 }
-            withAnimation(.easeOut(duration: 0.62).delay(0.08)) { burst = true }
+            withAnimation(.timingCurve(0.12, 0.82, 0.22, 1, duration: duration)) {
+                progress = 1
+            }
+            withAnimation(.easeOut(duration: 0.72)) { ringProgress = 1 }
         }
-        withAnimation(.easeOut(duration: 0.28).delay(0.04)) { haloOpacity = 1 }
-        do { try await Task.sleep(nanoseconds: UInt64(d * 1_000_000_000)) }
+
+        do { try await Task.sleep(nanoseconds: UInt64(duration * 1_000_000_000)) }
         catch { return }
+
         if !completed {
             completed = true
             onCompleted()
