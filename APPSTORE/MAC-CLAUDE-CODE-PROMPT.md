@@ -14,9 +14,9 @@ Do these in order, once, on the Mac, before running the prompt:
 You are working on the iOS app "Finger Picker" on this Mac. Goal: build it, test it, and upload
 a build to App Store Connect / TestFlight for INTERNAL testing. Do the work; don't just plan it.
 
-REPO: https://github.com/davidpit1565/finger-party  branch: claude/finger-picker-mvp
-1. Clone it (or `git pull` if already cloned) and check out that branch. Do not push to or merge
-   into main. Read README.md and APPSTORE/TESTFLIGHT-RUNBOOK.md first.
+REPO: https://github.com/davidpit1565/finger-party  branch: main (the MVP is already merged there)
+1. Clone it (or `git pull` if already cloned) and stay on main. Make any fixes on a NEW branch and
+   never push to main directly. Read README.md and APPSTORE/TESTFLIGHT-RUNBOOK.md first.
 2. Check the toolchain: Xcode (`xcodebuild -version`), `brew install xcodegen` if missing.
 3. Run `swift test --package-path Packages/FingerPickerCore`, then `xcodegen generate`, then the
    app tests on an iPhone simulator. If anything fails to compile or a test fails, find the root
@@ -36,6 +36,6 @@ REPO: https://github.com/davidpit1565/finger-party  branch: claude/finger-picker
 
 HARD RULES: do NOT submit the app for App Review or public release. Do NOT accept agreements,
 change payment/tax/banking details, or invent business/personal details. Do NOT bypass two-factor
-authentication or ask me to paste passwords in chat. Do NOT merge into main. If an action needs
+authentication or ask me to paste passwords in chat. Do NOT push or merge into main. If an action needs
 my approval, stop at that action and explain exactly what is needed.
 ```
