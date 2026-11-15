@@ -34,7 +34,7 @@ The current repository name and working label “FINGER PARTY” are not approve
 - Subscriptions, paywalls, in-app purchases, coins, reward systems.
 - Ads, third-party analytics, tracking SDKs.
 - iPad-specific layout (can be considered after iPhone validation).
-- Custom themes, color packs, advanced configuration, onboarding carousel.
+- User-created color packs and arbitrary custom colors; three curated color moods are included.
 - Claims of unlimited players or guaranteed maximum simultaneous touches.
 
 ## 3. Navigation and information architecture
@@ -118,7 +118,8 @@ Preferred simplest behavior: after result, show “Lift fingers, then tap to pla
 Only a small sheet with:
 - Sound: On/Off.
 - Haptics: On/Off.
-- No appearance selector in MVP. Keep one consistent dark base play surface; the winner's assigned color fills the screen at the end.
+- Color mood: Vivid / Cool / Warm (persisted locally).
+- No general appearance or light/dark selector. Keep one consistent dark base play surface; the winner's assigned color defines the reveal.
 - Privacy Policy link.
 - Version/build number.
 

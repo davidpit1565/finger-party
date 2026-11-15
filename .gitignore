@@ -1,0 +1,28 @@
+# Xcode / SwiftPM
+.build/
+.swiftpm/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+*.xcworkspace/xcuserdata/
+build/
+*.ipa
+*.xcarchive
+*.dSYM.zip
+# Generated project (recreate with `xcodegen`)
+FingerPicker.xcodeproj/
+# Signing & secrets — never commit
+*.p8
+*.p12
+*.cer
+*.certSigningRequest
+*.mobileprovision
+*.provisionprofile
+AuthKey_*.p8
+fastlane/report.xml
+.env
+.env.*
+secrets/
+# OS / tools
+.DS_Store
+__pycache__/
